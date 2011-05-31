@@ -1172,7 +1172,7 @@ int board_nand_init(struct nand_chip *this)
 #endif
 
 #ifdef CONFIG_SYS_NAND_USE_FLASH_BBT
-	this->bbt_options |= NAND_USE_FLASH_BBT;
+	this->bbt_options |= NAND_BBT_USE_FLASH;
 	this->bbt_td = &bbt_main_descr;
 	this->bbt_md = &bbt_mirror_descr;
 #endif
