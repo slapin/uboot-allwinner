@@ -2835,7 +2835,6 @@ ident_done:
 	if (mtd->writesize > 512 && chip->cmdfunc == nand_command)
 		chip->cmdfunc = nand_command_lp;
 
-	/* TODO onfi flash name */
 	name = type->name;
 #ifdef CONFIG_SYS_NAND_ONFI_DETECTION
 	if (chip->onfi_version)
