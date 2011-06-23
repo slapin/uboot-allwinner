@@ -142,7 +142,7 @@ typedef enum {
 #define NAND_ECC_READ		0
 /* Reset Hardware ECC for write */
 #define NAND_ECC_WRITE		1
-/* Enable Hardware ECC before syndrom is read back from flash */
+/* Enable Hardware ECC before syndrome is read back from flash */
 #define NAND_ECC_READSYN	2
 
 /* Bit mask for flags passed to do_nand_read_ecc */
@@ -155,7 +155,7 @@ typedef enum {
  */
 /* Chip can not auto increment pages */
 #define NAND_NO_AUTOINCR	0x00000001
-/* Buswitdh is 16 bit */
+/* Buswidth is 16 bit */
 #define NAND_BUSWIDTH_16	0x00000002
 /* Device supports partial programming without padding */
 #define NAND_NO_PADDING		0x00000004
@@ -314,26 +314,26 @@ struct nand_hw_control {
 };
 
 /**
- * struct nand_ecc_ctrl - Control structure for ecc
- * @mode:	ecc mode
- * @steps:	number of ecc steps per page
- * @size:	data bytes per ecc step
- * @bytes:	ecc bytes per step
- * @total:	total number of ecc bytes per page
- * @prepad:	padding information for syndrome based ecc generators
- * @postpad:	padding information for syndrome based ecc generators
+ * struct nand_ecc_ctrl - Control structure for ECC
+ * @mode:	ECC mode
+ * @steps:	number of ECC steps per page
+ * @size:	data bytes per ECC step
+ * @bytes:	ECC bytes per step
+ * @total:	total number of ECC bytes per page
+ * @prepad:	padding information for syndrome based ECC generators
+ * @postpad:	padding information for syndrome based ECC generators
  * @layout:	ECC layout control struct pointer
- * @priv:	pointer to private ecc control data
- * @hwctl:	function to control hardware ecc generator. Must only
+ * @priv:	pointer to private ECC control data
+ * @hwctl:	function to control hardware ECC generator. Must only
  *		be provided if an hardware ECC is available
- * @calculate:	function for ecc calculation or readback from ecc hardware
- * @correct:	function for ecc correction, matching to ecc generator (sw/hw)
+ * @calculate:	function for ECC calculation or readback from ECC hardware
+ * @correct:	function for ECC correction, matching to ECC generator (sw/hw)
  * @read_page_raw:	function to read a raw page without ECC
  * @write_page_raw:	function to write a raw page without ECC
- * @read_page:	function to read a page according to the ecc generator
+ * @read_page:	function to read a page according to the ECC generator
  *		requirements.
  * @read_subpage:	function to read parts of the page covered by ECC.
- * @write_page:	function to write a page according to the ecc generator
+ * @write_page:	function to write a page according to the ECC generator
  *		requirements.
  * @read_oob:	function to read chip OOB data
  * @write_oob:	function to write chip OOB data
@@ -371,8 +371,8 @@ struct nand_ecc_ctrl {
 
 /**
  * struct nand_buffers - buffer structure for read/write
- * @ecccalc:	buffer for calculated ecc
- * @ecccode:	buffer for ecc read from flash
+ * @ecccalc:	buffer for calculated ECC
+ * @ecccode:	buffer for ECC read from flash
  * @databuf:	buffer for data - dynamically sized
  *
  * Do not change the order of buffers. databuf and oobrbuf must be in
@@ -406,7 +406,7 @@ struct nand_buffers {
  *			mtd->oobsize, mtd->writesize and so on.
  *			@id_data contains the 8 bytes values of NAND_CMD_READID.
  *			Return with the bus width.
- * @dev_ready:		[BOARDSPECIFIC] hardwarespecific function for accesing
+ * @dev_ready:		[BOARDSPECIFIC] hardwarespecific function for accessing
  *			device ready/busy line. If set to NULL no access to
  *			ready/busy is available and the ready/busy information
  *			is read from the chip status register.
@@ -414,7 +414,7 @@ struct nand_buffers {
  *			commands to the chip.
  * @waitfunc:		[REPLACEABLE] hardwarespecific function for wait on
  *			ready.
- * @ecc:		[BOARDSPECIFIC] ecc control ctructure
+ * @ecc:		[BOARDSPECIFIC] ECC control structure
  * @buffers:		buffer structure for read/write
  * @hwcontrol:		platform-specific hardware control structure
  * @ops:		oob operation operands
@@ -451,7 +451,7 @@ struct nand_buffers {
  *			non 0 if ONFI supported.
  * @onfi_params:	[INTERN] holds the ONFI page parameter when ONFI is
  *			supported, 0 otherwise.
- * @ecclayout:		[REPLACEABLE] the default ecc placement scheme
+ * @ecclayout:		[REPLACEABLE] the default ECC placement scheme
  * @bbt:		[INTERN] bad block table pointer
  * @bbt_td:		[REPLACEABLE] bad block table descriptor for flash
  *			lookup.
@@ -459,7 +459,7 @@ struct nand_buffers {
  * @badblock_pattern:	[REPLACEABLE] bad block scan pattern used for initial
  *			bad block scan.
  * @controller:		[REPLACEABLE] a pointer to a hardware controller
- *			structure which is shared among multiple independend
+ *			structure which is shared among multiple independent
  *			devices.
  * @priv:		[OPTIONAL] pointer to private chip date
  * @errstat:		[OPTIONAL] hardware specific function to perform
@@ -608,7 +608,7 @@ extern int nand_do_read(struct mtd_info *mtd, loff_t from, size_t len,
  * @chip_delay:		R/B delay value in us
  * @options:		Option flags, e.g. 16bit buswidth
  * @bbt_options:	BBT option flags, e.g. NAND_BBT_USE_FLASH
- * @ecclayout:		ecc layout info structure
+ * @ecclayout:		ECC layout info structure
  * @part_probe_types:	NULL-terminated array of probe types
  * @priv:		hardware controller specific settings
  */

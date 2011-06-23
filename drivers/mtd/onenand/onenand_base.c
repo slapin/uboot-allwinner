@@ -747,7 +747,7 @@ static void onenand_release_device(struct mtd_info *mtd)
 }
 
 /**
- * onenand_transfer_auto_oob - [Internal] oob auto-placement transfer
+ * onenand_transfer_auto_oob - [INTERN] oob auto-placement transfer
  * @param mtd		MTD device structure
  * @param buf		destination address
  * @param column	oob offset to read from
@@ -1341,7 +1341,7 @@ static int onenand_verify(struct mtd_info *mtd, const u_char *buf, loff_t addr, 
 #define NOTALIGNED(x)	((x & (this->subpagesize - 1)) != 0)
 
 /**
- * onenand_fill_auto_oob - [Internal] oob auto-placement transfer
+ * onenand_fill_auto_oob - [INTERN] oob auto-placement transfer
  * @param mtd           MTD device structure
  * @param oob_buf       oob buffer
  * @param buf           source address
@@ -1506,7 +1506,7 @@ static int onenand_write_ops_nolock(struct mtd_info *mtd, loff_t to,
 }
 
 /**
- * onenand_write_oob_nolock - [Internal] OneNAND write out-of-band
+ * onenand_write_oob_nolock - [INTERN] OneNAND write out-of-band
  * @param mtd           MTD device structure
  * @param to            offset to write to
  * @param len           number of bytes to write
