@@ -610,7 +610,6 @@ extern int nand_do_read(struct mtd_info *mtd, loff_t from, size_t len,
  * @bbt_options:	BBT option flags, e.g. NAND_BBT_USE_FLASH
  * @ecclayout:		ECC layout info structure
  * @part_probe_types:	NULL-terminated array of probe types
- * @priv:		hardware controller specific settings
  */
 struct platform_nand_chip {
 	int nr_chips;
