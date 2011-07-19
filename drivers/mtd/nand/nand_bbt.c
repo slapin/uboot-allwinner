@@ -220,7 +220,7 @@ static int read_bbt(struct mtd_info *mtd, uint8_t *buf, int page, int num,
 				if (tmp == msk)
 					continue;
 				if (reserved_block_code && (tmp == reserved_block_code)) {
-					printk(KERN_DEBUG "nand_read_bbt: Reserved block at 0x%012llx\n",
+					printk(KERN_INFO "nand_read_bbt: Reserved block at 0x%012llx\n",
 					       (loff_t)((offs << 2) + (act >> 1)) << this->bbt_erase_shift);
 					this->bbt[offs + (act >> 3)] |= 0x2 << (act & 0x06);
 					mtd->ecc_stats.bbtblocks++;
@@ -388,7 +388,7 @@ static int read_abs_bbts(struct mtd_info *mtd, uint8_t *buf,
 		scan_read_raw(mtd, buf, (loff_t)td->pages[0] << this->page_shift,
 			      mtd->writesize, td);
 		td->version[0] = buf[bbt_get_ver_offs(mtd, td)];
-		printk(KERN_DEBUG "Bad block table at page %d, version 0x%02X\n",
+		printk(KERN_INFO "Bad block table at page %d, version 0x%02X\n",
 		       td->pages[0], td->version[0]);
 	}
 
@@ -397,7 +397,7 @@ static int read_abs_bbts(struct mtd_info *mtd, uint8_t *buf,
 		scan_read_raw(mtd, buf, (loff_t)md->pages[0] << this->page_shift,
 			      mtd->writesize, td);
 		md->version[0] = buf[bbt_get_ver_offs(mtd, md)];
-		printk(KERN_DEBUG "Bad block table at page %d, version 0x%02X\n",
+		printk(KERN_INFO "Bad block table at page %d, version 0x%02X\n",
 		       md->pages[0], md->version[0]);
 	}
 	return 1;
@@ -845,7 +845,7 @@ static int write_bbt(struct mtd_info *mtd, uint8_t *buf,
 		if (res < 0)
 			goto outerr;
 
-		printk(KERN_DEBUG "Bad block table written to 0x%012llx, version "
+		printk(KERN_INFO "Bad block table written to 0x%012llx, version "
 		       "0x%02X\n", (unsigned long long)to, td->version[chip]);
 
 		/* Mark it as used */
