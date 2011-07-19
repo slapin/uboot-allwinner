@@ -206,7 +206,7 @@ static int read_bbt(struct mtd_info *mtd, uint8_t *buf, int page, int num,
 		res = mtd->read(mtd, from, len, &retlen, buf);
 		if (res < 0) {
 			if (retlen != len) {
-				pr_info("nand_bbt: Error reading bad block table\n");
+				pr_info("nand_bbt: error reading bad block table\n");
 				return res;
 			}
 			pr_warn("nand_bbt: ECC error while reading bad block table\n");
@@ -220,8 +220,8 @@ static int read_bbt(struct mtd_info *mtd, uint8_t *buf, int page, int num,
 				if (tmp == msk)
 					continue;
 				if (reserved_block_code && (tmp == reserved_block_code)) {
-					pr_info("nand_read_bbt: Reserved block at 0x%012llx\n",
-					       (loff_t)((offs << 2) + (act >> 1)) << this->bbt_erase_shift);
+					pr_info("nand_read_bbt: reserved block at 0x%012llx\n",
+						 (loff_t)((offs << 2) + (act >> 1)) << this->bbt_erase_shift);
 					this->bbt[offs + (act >> 3)] |= 0x2 << (act & 0x06);
 					mtd->ecc_stats.bbtblocks++;
 					continue;
@@ -388,7 +388,7 @@ static int read_abs_bbts(struct mtd_info *mtd, uint8_t *buf,
 			      mtd->writesize, td);
 		td->version[0] = buf[bbt_get_ver_offs(mtd, td)];
 		pr_info("Bad block table at page %d, version 0x%02X\n",
-		       td->pages[0], td->version[0]);
+			 td->pages[0], td->version[0]);
 	}
 
 	/* Read the mirror version, if available */
@@ -397,7 +397,7 @@ static int read_abs_bbts(struct mtd_info *mtd, uint8_t *buf,
 			      mtd->writesize, td);
 		md->version[0] = buf[bbt_get_ver_offs(mtd, md)];
 		pr_info("Bad block table at page %d, version 0x%02X\n",
-		       md->pages[0], md->version[0]);
+			 md->pages[0], md->version[0]);
 	}
 	return 1;
 }
@@ -611,8 +611,7 @@ static int search_bbt(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_descr 
 		if (td->pages[i] == -1)
 			pr_warn("Bad block table not found for chip %d\n", i);
 		else
-			pr_info("Bad block table found " \
-				"at page %d, version 0x%02X\n", td->pages[i],
+			pr_info("Bad block table found at page %d, version 0x%02X\n", td->pages[i],
 				td->version[i]);
 	}
 	return 0;
@@ -761,14 +760,12 @@ static int write_bbt(struct mtd_info *mtd, uint8_t *buf,
 			res = mtd->read(mtd, to, len, &retlen, buf);
 			if (res < 0) {
 				if (retlen != len) {
-					pr_info("nand_bbt: Error "
-					       "reading block for writing "
-					       "the bad block table\n");
+					pr_info("nand_bbt: error reading block "
+						"for writing the bad block table\n");
 					return res;
 				}
-				pr_warn("nand_bbt: ECC error "
-				       "while reading block for writing "
-				       "bad block table\n");
+				pr_warn("nand_bbt: ECC error while reading "
+					"block for writing bad block table\n");
 			}
 			/* Read oob data */
 			ops.ooblen = (len >> this->page_shift) * mtd->oobsize;
@@ -843,8 +840,8 @@ static int write_bbt(struct mtd_info *mtd, uint8_t *buf,
 		if (res < 0)
 			goto outerr;
 
-		pr_info("Bad block table written to 0x%012llx, version "
-		       "0x%02X\n", (unsigned long long)to, td->version[chip]);
+		pr_info("Bad block table written to 0x%012llx, version 0x%02X\n",
+			 (unsigned long long)to, td->version[chip]);
 
 		/* Mark it as used */
 		td->pages[chip] = page;
@@ -852,8 +849,7 @@ static int write_bbt(struct mtd_info *mtd, uint8_t *buf,
 	return 0;
 
  outerr:
-	printk(KERN_WARNING
-	       "nand_bbt: Error while writing bad block table %d\n", res);
+	pr_warn("nand_bbt: error while writing bad block table %d\n", res);
 	return res;
 }
 
@@ -1133,7 +1129,7 @@ int nand_scan_bbt(struct mtd_info *mtd, struct nand_bbt_descr *bd)
 	 */
 	if (!td) {
 		if ((res = nand_memory_bbt(mtd, bd))) {
-			pr_err("nand_bbt: Can't scan flash and build the RAM-based BBT\n");
+			pr_err("nand_bbt: can't scan flash and build the RAM-based BBT\n");
 			kfree(this->bbt);
 			this->bbt = NULL;
 		}
@@ -1301,7 +1297,7 @@ static int nand_create_default_bbt_descr(struct nand_chip *this)
 {
 	struct nand_bbt_descr *bd;
 	if (this->badblock_pattern) {
-		pr_warn("BBT descr already allocated; not replacing.\n");
+		pr_warn("BBT descr already allocated; not replacing\n");
 		return -EINVAL;
 	}
 	bd = kzalloc(sizeof(*bd), GFP_KERNEL);

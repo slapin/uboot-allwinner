@@ -2294,8 +2294,8 @@ int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
 		/* Heck if we have a bad block, we do not erase bad blocks! */
 		if (!instr->scrub && nand_block_checkbad(mtd, ((loff_t) page) <<
 					chip->page_shift, 0, allowbbt)) {
-			pr_warn("%s: attempt to erase a bad block "
-					"at page 0x%08x\n", __func__, page);
+			pr_warn("%s: attempt to erase a bad block at page 0x%08x\n",
+				   __func__, page);
 			instr->state = MTD_ERASE_FAILED;
 			goto erase_exit;
 		}
@@ -2560,8 +2560,7 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd, struct nand_chip *chip,
 		chip->onfi_version = 0;
 
 	if (!chip->onfi_version) {
-		pr_info("%s: unsupported ONFI version: %d\n",
-								__func__, val);
+		pr_info("%s: unsupported ONFI version: %d\n", __func__, val);
 		return 0;
 	}
 
@@ -2635,8 +2634,8 @@ static const struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 
 	if (id_data[0] != *maf_id || id_data[1] != *dev_id) {
 		pr_info("%s: second ID read did not match "
-		       "%02x,%02x against %02x,%02x\n", __func__,
-		       *maf_id, *dev_id, id_data[0], id_data[1]);
+			"%02x,%02x against %02x,%02x\n", __func__,
+			*maf_id, *dev_id, id_data[0], id_data[1]);
 		return ERR_PTR(-ENODEV);
 	}
 
@@ -2779,11 +2778,11 @@ ident_done:
 	 */
 	if (busw != (chip->options & NAND_BUSWIDTH_16)) {
 		pr_info("NAND device: Manufacturer ID:"
-		       " 0x%02x, Chip ID: 0x%02x (%s %s)\n", *maf_id,
-		       *dev_id, nand_manuf_ids[maf_idx].name, mtd->name);
+			" 0x%02x, Chip ID: 0x%02x (%s %s)\n", *maf_id,
+			*dev_id, nand_manuf_ids[maf_idx].name, mtd->name);
 		pr_warn("NAND bus width %d instead %d bit\n",
-		       (chip->options & NAND_BUSWIDTH_16) ? 16 : 8,
-		       busw ? 16 : 8);
+			   (chip->options & NAND_BUSWIDTH_16) ? 16 : 8,
+			   busw ? 16 : 8);
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -2880,7 +2879,7 @@ int nand_scan_ident(struct mtd_info *mtd, int maxchips,
 
 	if (IS_ERR(type)) {
 #ifndef CONFIG_SYS_NAND_QUIET_TEST
-		pr_warn("No NAND device found.\n");
+		pr_warn("No NAND device found\n");
 #endif
 		chip->select_chip(mtd, -1);
 		return PTR_ERR(type);
@@ -2951,8 +2950,8 @@ int nand_scan_tail(struct mtd_info *mtd)
 			chip->ecc.layout = &nand_oob_128;
 			break;
 		default:
-			pr_warn("No oob scheme defined for "
-			       "oobsize %d\n", mtd->oobsize);
+			pr_warn("No oob scheme defined for oobsize %d\n",
+				   mtd->oobsize);
 		}
 	}
 
@@ -2970,7 +2969,7 @@ int nand_scan_tail(struct mtd_info *mtd)
 		if (!chip->ecc.calculate || !chip->ecc.correct ||
 		     !chip->ecc.hwctl) {
 			pr_warn("No ECC functions supplied; "
-			       "Hardware ECC not possible\n");
+				   "hardware ECC not possible\n");
 			BUG();
 		}
 		if (!chip->ecc.read_page)
@@ -2999,7 +2998,7 @@ int nand_scan_tail(struct mtd_info *mtd)
 		     !chip->ecc.write_page ||
 		     chip->ecc.write_page == nand_write_page_hwecc)) {
 			pr_warn("No ECC functions supplied; "
-			       "Hardware ECC not possible\n");
+				   "hardware ECC not possible\n");
 			BUG();
 		}
 		/* Use standard syndrome read/write page function? */
@@ -3019,8 +3018,8 @@ int nand_scan_tail(struct mtd_info *mtd)
 		if (mtd->writesize >= chip->ecc.size)
 			break;
 		pr_warn("%d byte HW ECC not possible on "
-		       "%d byte page size, fallback to SW ECC\n",
-		       chip->ecc.size, mtd->writesize);
+			   "%d byte page size, fallback to SW ECC\n",
+			   chip->ecc.size, mtd->writesize);
 		chip->ecc.mode = NAND_ECC_SOFT;
 
 	case NAND_ECC_SOFT:
@@ -3072,8 +3071,8 @@ int nand_scan_tail(struct mtd_info *mtd)
 		break;
 
 	case NAND_ECC_NONE:
-		pr_warn(KERN_WARNING "NAND_ECC_NONE selected by board driver. "
-		       "This is not recommended !!\n");
+		pr_warn("NAND_ECC_NONE selected by board driver. "
+		        "This is not recommended !!\n");
 		chip->ecc.read_page = nand_read_page_raw;
 		chip->ecc.write_page = nand_write_page_raw;
 		chip->ecc.read_oob = nand_read_oob_std;
@@ -3085,8 +3084,7 @@ int nand_scan_tail(struct mtd_info *mtd)
 		break;
 
 	default:
-		pr_warn("Invalid NAND_ECC_MODE %d\n",
-		       chip->ecc.mode);
+		pr_warn("Invalid NAND_ECC_MODE %d\n", chip->ecc.mode);
 		BUG();
 	}
 
