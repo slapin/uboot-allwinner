@@ -75,10 +75,10 @@ int nandmtd_WriteChunkToNAND(struct yaffs_dev *dev, int chunkInNAND,
 	else if (spare) {
 		if (dev->param.use_nand_ecc) {
 			translate_spare2oob(spare, spareAsBytes);
-			ops.mode = MTD_OOB_AUTO;
+			ops.mode = MTD_OPS_AUTO_OOB;
 			ops.ooblen = 8; /* temp hack */
 		} else {
-			ops.mode = MTD_OOB_RAW;
+			ops.mode = MTD_OPS_RAW;
 			ops.ooblen = YAFFS_BYTES_PER_SPARE;
 		}
 		ops.len = data ? dev->data_bytes_per_chunk : ops.ooblen;
@@ -110,10 +110,10 @@ int nandmtd_ReadChunkFromNAND(struct yaffs_dev *dev, int chunkInNAND, u8 *data,
 				&dummy, data);
 	else if (spare) {
 		if (dev->param.use_nand_ecc) {
-			ops.mode = MTD_OOB_AUTO;
+			ops.mode = MTD_OPS_AUTO_OOB;
 			ops.ooblen = 8; /* temp hack */
 		} else {
-			ops.mode = MTD_OOB_RAW;
+			ops.mode = MTD_OPS_RAW;
 			ops.ooblen = YAFFS_BYTES_PER_SPARE;
 		}
 		ops.len = data ? dev->data_bytes_per_chunk : ops.ooblen;

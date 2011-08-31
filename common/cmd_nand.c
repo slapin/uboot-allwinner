@@ -62,7 +62,7 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob, int repeat)
 	ops.oobbuf = oobbuf;
 	ops.len = nand->writesize;
 	ops.ooblen = nand->oobsize;
-	ops.mode = MTD_OOB_RAW;
+	ops.mode = MTD_OPS_RAW;
 	i = nand->read_oob(nand, addr, &ops);
 	if (i < 0) {
 		printf("Error (%d) reading page %08lx\n", i, off);
@@ -407,7 +407,7 @@ static int raw_access(nand_info_t *nand, ulong addr, loff_t off, ulong count,
 			.oobbuf = ((u8 *)addr) + nand->writesize,
 			.len = nand->writesize,
 			.ooblen = nand->oobsize,
-			.mode = MTD_OOB_RAW
+			.mode = MTD_OPS_RAW
 		};
 
 		if (read)
@@ -680,7 +680,7 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			mtd_oob_ops_t ops = {
 				.oobbuf = (u8 *)addr,
 				.ooblen = rwsize,
-				.mode = MTD_OOB_RAW
+				.mode = MTD_OPS_RAW
 			};
 
 			if (read)

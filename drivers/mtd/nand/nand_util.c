@@ -157,7 +157,7 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 			chip->ops.datbuf = NULL;
 			chip->ops.oobbuf = (uint8_t *)&cleanmarker;
 			chip->ops.ooboffs = 0;
-			chip->ops.mode = MTD_OOB_AUTO;
+			chip->ops.mode = MTD_OPS_AUTO_OOB;
 
 			result = meminfo->write_oob(meminfo,
 			                            erase.addr,
@@ -557,7 +557,7 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 
 			ops.len = pagesize;
 			ops.ooblen = nand->oobsize;
-			ops.mode = MTD_OOB_AUTO;
+			ops.mode = MTD_OPS_AUTO_OOB;
 			ops.ooboffs = 0;
 
 			pages = write_size / pagesize_oob;

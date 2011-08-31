@@ -851,7 +851,7 @@ static int onenand_read_ops_nolock(struct mtd_info *mtd, loff_t from,
 
 	MTDDEBUG(MTD_DEBUG_LEVEL3, "onenand_read_ops_nolock: from = 0x%08x, len = %i\n", (unsigned int) from, (int) len);
 
-	if (ops->mode == MTD_OOB_AUTO)
+	if (ops->mode == MTD_OPS_AUTO_OOB)
 		oobsize = this->ecclayout->oobavail;
 	else
 		oobsize = mtd->oobsize;
@@ -918,7 +918,7 @@ static int onenand_read_ops_nolock(struct mtd_info *mtd, loff_t from,
 			thisooblen = oobsize - oobcolumn;
 			thisooblen = min_t(int, thisooblen, ooblen - oobread);
 
-			if (ops->mode == MTD_OOB_AUTO)
+			if (ops->mode == MTD_OPS_AUTO_OOB)
 				onenand_transfer_auto_oob(mtd, oobbuf, oobcolumn, thisooblen);
 			else
 				this->read_bufferram(mtd, 0, ONENAND_SPARERAM, oobbuf, oobcolumn, thisooblen);
@@ -1002,7 +1002,7 @@ static int onenand_read_oob_nolock(struct mtd_info *mtd, loff_t from,
 	/* Initialize return length value */
 	ops->oobretlen = 0;
 
-	if (mode == MTD_OOB_AUTO)
+	if (mode == MTD_OPS_AUTO_OOB)
 		oobsize = this->ecclayout->oobavail;
 	else
 		oobsize = mtd->oobsize;
@@ -1045,7 +1045,7 @@ static int onenand_read_oob_nolock(struct mtd_info *mtd, loff_t from,
 			break;
 		}
 
-		if (mode == MTD_OOB_AUTO)
+		if (mode == MTD_OPS_AUTO_OOB)
 			onenand_transfer_auto_oob(mtd, buf, column, thislen);
 		else
 			this->read_bufferram(mtd, 0, ONENAND_SPARERAM, buf, column, thislen);
@@ -1119,10 +1119,10 @@ int onenand_read_oob(struct mtd_info *mtd, loff_t from,
 	int ret;
 
 	switch (ops->mode) {
-	case MTD_OOB_PLACE:
-	case MTD_OOB_AUTO:
+	case MTD_OPS_PLACE_OOB:
+	case MTD_OPS_AUTO_OOB:
 		break;
-	case MTD_OOB_RAW:
+	case MTD_OPS_RAW:
 		/* Not implemented yet */
 	default:
 		return -EINVAL;
@@ -1420,7 +1420,7 @@ static int onenand_write_ops_nolock(struct mtd_info *mtd, loff_t to,
 		return -EINVAL;
 	}
 
-	if (ops->mode == MTD_OOB_AUTO)
+	if (ops->mode == MTD_OPS_AUTO_OOB)
 		oobsize = this->ecclayout->oobavail;
 	else
 		oobsize = mtd->oobsize;
@@ -1454,7 +1454,7 @@ static int onenand_write_ops_nolock(struct mtd_info *mtd, loff_t to,
 			/* We send data to spare ram with oobsize
 			 *                          * to prevent byte access */
 			memset(oobbuf, 0xff, mtd->oobsize);
-			if (ops->mode == MTD_OOB_AUTO)
+			if (ops->mode == MTD_OPS_AUTO_OOB)
 				onenand_fill_auto_oob(mtd, oobbuf, oob, oobcolumn, thisooblen);
 			else
 				memcpy(oobbuf + oobcolumn, oob, thisooblen);
@@ -1534,7 +1534,7 @@ static int onenand_write_oob_nolock(struct mtd_info *mtd, loff_t to,
 	/* Initialize retlen, in case of early exit */
 	ops->oobretlen = 0;
 
-	if (mode == MTD_OOB_AUTO)
+	if (mode == MTD_OPS_AUTO_OOB)
 		oobsize = this->ecclayout->oobavail;
 	else
 		oobsize = mtd->oobsize;
@@ -1575,7 +1575,7 @@ static int onenand_write_oob_nolock(struct mtd_info *mtd, loff_t to,
 		/* We send data to spare ram with oobsize
 		 * to prevent byte access */
 		memset(oobbuf, 0xff, mtd->oobsize);
-		if (mode == MTD_OOB_AUTO)
+		if (mode == MTD_OPS_AUTO_OOB)
 			onenand_fill_auto_oob(mtd, oobbuf, buf, column, thislen);
 		else
 			memcpy(oobbuf + column, buf, thislen);
@@ -1665,10 +1665,10 @@ int onenand_write_oob(struct mtd_info *mtd, loff_t to,
 	int ret;
 
 	switch (ops->mode) {
-	case MTD_OOB_PLACE:
-	case MTD_OOB_AUTO:
+	case MTD_OPS_PLACE_OOB:
+	case MTD_OPS_AUTO_OOB:
 		break;
-	case MTD_OOB_RAW:
+	case MTD_OPS_RAW:
 		/* Not implemented yet */
 	default:
 		return -EINVAL;
@@ -1893,7 +1893,7 @@ static int onenand_default_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	struct bbm_info *bbm = this->bbm;
 	u_char buf[2] = {0, 0};
 	struct mtd_oob_ops ops = {
-		.mode = MTD_OOB_PLACE,
+		.mode = MTD_OPS_PLACE_OOB,
 		.ooblen = 2,
 		.oobbuf = buf,
 		.ooboffs = 0,
@@ -2390,7 +2390,7 @@ static int flexonenand_check_blocks_erased(struct mtd_info *mtd,
 	int i, ret;
 	int block;
 	struct mtd_oob_ops ops = {
-		.mode = MTD_OOB_PLACE,
+		.mode = MTD_OPS_PLACE_OOB,
 		.ooboffs = 0,
 		.ooblen	= mtd->oobsize,
 		.datbuf	= NULL,

@@ -118,7 +118,7 @@ static int onenand_write_oneblock_withoob(loff_t to, const u_char * buf,
 	struct mtd_oob_ops ops = {
 		.len = mtd->writesize,
 		.ooblen = mtd->oobsize,
-		.mode = MTD_OOB_AUTO,
+		.mode = MTD_OPS_AUTO_OOB,
 	};
 	int page, ret = 0;
 	for (page = 0; page < (mtd->erasesize / mtd->writesize); page ++) {
