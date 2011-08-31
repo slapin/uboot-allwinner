@@ -1554,7 +1554,10 @@ static int nand_do_read_oob(struct mtd_info *mtd, loff_t from,
 
 	while (1) {
 		WATCHDOG_RESET();
-		sndcmd = chip->ecc.read_oob(mtd, chip, page, sndcmd);
+		if (ops->mode == MTD_OOB_RAW)
+			sndcmd = chip->ecc.read_oob_raw(mtd, chip, page, sndcmd);
+		else
+			sndcmd = chip->ecc.read_oob(mtd, chip, page, sndcmd);
 
 		len = min(len, readlen);
 		buf = nand_transfer_oob(chip, buf, ops, len);
@@ -3093,6 +3096,8 @@ int nand_scan_tail(struct mtd_info *mtd)
 	}
 
 	/* For many systems, the standard OOB write also works for raw */
+	if (!chip->ecc.read_oob_raw)
+		chip->ecc.read_oob_raw = chip->ecc.read_oob;
 	if (!chip->ecc.write_oob_raw)
 		chip->ecc.write_oob_raw = chip->ecc.write_oob;
 
