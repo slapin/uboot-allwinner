@@ -10,6 +10,7 @@
 #include <linux/types.h>
 #include <div64.h>
 #include <mtd/mtd-abi.h>
+#include <asm/errno.h>
 
 #define MTD_CHAR_MAJOR 90
 #define MTD_BLOCK_MAJOR 31
@@ -297,5 +298,17 @@ static inline void mtd_erase_callback(struct erase_info *instr)
 #define pr_info(args...)	MTDDEBUG(MTD_DEBUG_LEVEL0, args)
 #define pr_warn(args...)	MTDDEBUG(MTD_DEBUG_LEVEL0, args)
 #define pr_err(args...)		MTDDEBUG(MTD_DEBUG_LEVEL0, args)
+
+static inline int mtd_is_bitflip(int err) {
+	return err == -EUCLEAN;
+}
+
+static inline int mtd_is_eccerr(int err) {
+	return err == -EBADMSG;
+}
+
+static inline int mtd_is_bitflip_or_eccerr(int err) {
+	return mtd_is_bitflip(err) || mtd_is_eccerr(err);
+}
 
 #endif /* __MTD_MTD_H__ */
