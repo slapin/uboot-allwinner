@@ -904,11 +904,9 @@ static int check_create(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_desc
 				writeops = 0x03;
 			} else if (td->pages[i] == -1) {
 				rd = md;
-				td->version[i] = md->version[i];
 				writeops = 0x01;
 			} else if (md->pages[i] == -1) {
 				rd = td;
-				md->version[i] = td->version[i];
 				writeops = 0x02;
 			} else if (td->version[i] == md->version[i]) {
 				rd = td;
@@ -916,11 +914,9 @@ static int check_create(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_desc
 					rd2 = md;
 			} else if (((int8_t)(td->version[i] - md->version[i])) > 0) {
 				rd = td;
-				md->version[i] = td->version[i];
 				writeops = 0x02;
 			} else {
 				rd = md;
-				td->version[i] = md->version[i];
 				writeops = 0x01;
 			}
 		} else {
@@ -952,6 +948,7 @@ static int check_create(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_desc
 			if (mtd_is_eccerr(res)) {
 				/* Mark table as invalid */
 				rd->pages[i] = -1;
+				rd->version[i] = 0;
 				i--;
 				continue;
 			}
@@ -962,6 +959,7 @@ static int check_create(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_desc
 			if (mtd_is_eccerr(res2)) {
 				/* Mark table as invalid */
 				rd2->pages[i] = -1;
+				rd2->version[i] = 0;
 				i--;
 				continue;
 			}
@@ -970,6 +968,12 @@ static int check_create(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_desc
 		/* Scrub the flash table(s)? */
 		if (mtd_is_bitflip(res) || mtd_is_bitflip(res2))
 			writeops = 0x03;
+
+		/* Update version numbers before writing */
+		if (md) {
+			td->version[i] = max(td->version[i], md->version[i]);
+			md->version[i] = td->version[i];
+		}
 
 		/* Write the bad block table to the device? */
 		if ((writeops & 0x01) && (td->options & NAND_BBT_WRITE)) {
