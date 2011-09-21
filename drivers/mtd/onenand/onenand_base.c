@@ -811,7 +811,7 @@ static int onenand_recover_lsb(struct mtd_info *mtd, loff_t addr, int status)
 		return status;
 
 	/* check if we failed due to uncorrectable error */
-	if (status != -EBADMSG && status != ONENAND_BBT_READ_ECC_ERROR)
+	if (!mtd_is_eccerr(status) && status != ONENAND_BBT_READ_ECC_ERROR)
 		return status;
 
 	/* check if address lies in MLC region */
@@ -933,7 +933,7 @@ static int onenand_read_ops_nolock(struct mtd_info *mtd, loff_t from,
 			if (unlikely(ret))
 				ret = onenand_recover_lsb(mtd, from, ret);
 			onenand_update_bufferram(mtd, from, !ret);
-			if (ret == -EBADMSG)
+			if (mtd_is_eccerr(ret))
 				ret = 0;
 		}
 
@@ -954,7 +954,7 @@ static int onenand_read_ops_nolock(struct mtd_info *mtd, loff_t from,
 			/* Now wait for load */
 			ret = this->wait(mtd, FL_READING);
 			onenand_update_bufferram(mtd, from, !ret);
-			if (ret == -EBADMSG)
+			if (mtd_is_eccerr(ret))
 				ret = 0;
 		}
 	}
