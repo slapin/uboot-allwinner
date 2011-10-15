@@ -425,6 +425,7 @@ static int nand_default_block_markbad(struct mtd_info *mtd, loff_t ofs)
 		ops.datbuf = NULL;
 		ops.oobbuf = buf;
 		ops.ooboffs = chip->badblockpos & ~0x01;
+		ops.mode = MTD_OPS_PLACE_OOB;
 		do {
 			ret = nand_do_write_oob(mtd, ofs, &ops);
 
@@ -1362,6 +1363,7 @@ static int nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	ops.len = len;
 	ops.datbuf = buf;
 	ops.oobbuf = NULL;
+	ops.mode = 0;
 
 	ret = nand_do_read_ops(mtd, from, &ops);
 
@@ -2065,6 +2067,7 @@ static int nand_write(struct mtd_info *mtd, loff_t to, size_t len,
 	ops.len = len;
 	ops.datbuf = (uint8_t *)buf;
 	ops.oobbuf = NULL;
+	ops.mode = 0;
 
 	ret = nand_do_write_ops(mtd, to, &ops);
 
