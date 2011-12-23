@@ -250,6 +250,12 @@ static inline int mtd_read_oob(struct mtd_info *mtd, loff_t from,
 	return mtd->read_oob(mtd, from, ops);
 }
 
+static inline int mtd_write_oob(struct mtd_info *mtd, loff_t to,
+				struct mtd_oob_ops *ops)
+{
+	return mtd->write_oob(mtd, to, ops);
+}
+
 static inline uint32_t mtd_div_by_eb(uint64_t sz, struct mtd_info *mtd)
 {
 	do_div(sz, mtd->erasesize);
