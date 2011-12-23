@@ -164,18 +164,18 @@ struct mtd_info {
 			 struct mtd_oob_ops *ops);
 	int (*write_oob) (struct mtd_info *mtd, loff_t to,
 			 struct mtd_oob_ops *ops);
-
-	/*
-	 * Methods to access the protection register area, present in some
-	 * flash devices. The user data is one time programmable but the
-	 * factory data is read only.
-	 */
-	int (*get_fact_prot_info) (struct mtd_info *mtd, struct otp_info *buf, size_t len);
-	int (*read_fact_prot_reg) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
-	int (*get_user_prot_info) (struct mtd_info *mtd, struct otp_info *buf, size_t len);
-	int (*read_user_prot_reg) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
-	int (*write_user_prot_reg) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
-	int (*lock_user_prot_reg) (struct mtd_info *mtd, loff_t from, size_t len);
+	int (*get_fact_prot_info) (struct mtd_info *mtd, struct otp_info *buf,
+				   size_t len);
+	int (*read_fact_prot_reg) (struct mtd_info *mtd, loff_t from,
+				   size_t len, size_t *retlen, u_char *buf);
+	int (*get_user_prot_info) (struct mtd_info *mtd, struct otp_info *buf,
+				   size_t len);
+	int (*read_user_prot_reg) (struct mtd_info *mtd, loff_t from,
+				   size_t len, size_t *retlen, u_char *buf);
+	int (*write_user_prot_reg) (struct mtd_info *mtd, loff_t to, size_t len,
+				    size_t *retlen, u_char *buf);
+	int (*lock_user_prot_reg) (struct mtd_info *mtd, loff_t from,
+				   size_t len);
 
 /* XXX U-BOOT XXX */
 #if 0
@@ -254,6 +254,51 @@ static inline int mtd_write_oob(struct mtd_info *mtd, loff_t to,
 				struct mtd_oob_ops *ops)
 {
 	return mtd->write_oob(mtd, to, ops);
+}
+
+/*
+ * Method to access the protection register area, present in some flash
+ * devices. The user data is one time programmable but the factory data is read
+ * only.
+ */
+static inline int mtd_get_fact_prot_info(struct mtd_info *mtd,
+					 struct otp_info *buf, size_t len)
+{
+	return mtd->get_fact_prot_info(mtd, buf, len);
+}
+
+static inline int mtd_read_fact_prot_reg(struct mtd_info *mtd, loff_t from,
+					 size_t len, size_t *retlen,
+					 u_char *buf)
+{
+	return mtd->read_fact_prot_reg(mtd, from, len, retlen, buf);
+}
+
+static inline int mtd_get_user_prot_info(struct mtd_info *mtd,
+					 struct otp_info *buf,
+					 size_t len)
+{
+	return mtd->get_user_prot_info(mtd, buf, len);
+}
+
+static inline int mtd_read_user_prot_reg(struct mtd_info *mtd, loff_t from,
+					 size_t len, size_t *retlen,
+					 u_char *buf)
+{
+	return mtd->read_user_prot_reg(mtd, from, len, retlen, buf);
+}
+
+static inline int mtd_write_user_prot_reg(struct mtd_info *mtd, loff_t to,
+					  size_t len, size_t *retlen,
+					  u_char *buf)
+{
+	return mtd->write_user_prot_reg(mtd, to, len, retlen, buf);
+}
+
+static inline int mtd_lock_user_prot_reg(struct mtd_info *mtd, loff_t from,
+					 size_t len)
+{
+	return mtd->lock_user_prot_reg(mtd, from, len);
 }
 
 static inline uint32_t mtd_div_by_eb(uint64_t sz, struct mtd_info *mtd)
