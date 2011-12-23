@@ -222,7 +222,7 @@ static int part_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 static void part_sync(struct mtd_info *mtd)
 {
 	struct mtd_part *part = PART(mtd);
-	part->master->sync(part->master);
+	mtd_sync(part->master);
 }
 
 static int part_block_isbad(struct mtd_info *mtd, loff_t ofs)

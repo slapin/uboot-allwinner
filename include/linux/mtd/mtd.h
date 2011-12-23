@@ -176,6 +176,7 @@ struct mtd_info {
 				    size_t *retlen, u_char *buf);
 	int (*lock_user_prot_reg) (struct mtd_info *mtd, loff_t from,
 				   size_t len);
+	void (*sync) (struct mtd_info *mtd);
 
 /* XXX U-BOOT XXX */
 #if 0
@@ -185,9 +186,6 @@ struct mtd_info {
 	*/
 	int (*writev) (struct mtd_info *mtd, const struct kvec *vecs, unsigned long count, loff_t to, size_t *retlen);
 #endif
-
-	/* Sync */
-	void (*sync) (struct mtd_info *mtd);
 
 	/* Chip-supported device locking */
 	int (*lock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
@@ -299,6 +297,11 @@ static inline int mtd_lock_user_prot_reg(struct mtd_info *mtd, loff_t from,
 					 size_t len)
 {
 	return mtd->lock_user_prot_reg(mtd, from, len);
+}
+
+static inline void mtd_sync(struct mtd_info *mtd)
+{
+	mtd->sync(mtd);
 }
 
 static inline uint32_t mtd_div_by_eb(uint64_t sz, struct mtd_info *mtd)
