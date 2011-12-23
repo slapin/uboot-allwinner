@@ -57,8 +57,7 @@ static int part_read(struct mtd_info *mtd, loff_t from, size_t len,
 		len = 0;
 	else if (from + len > mtd->size)
 		len = mtd->size - from;
-	res = part->master->read(part->master, from + part->offset,
-				   len, retlen, buf);
+	res = mtd_read(part->master, from + part->offset, len, retlen, buf);
 	if (unlikely(res)) {
 		if (mtd_is_bitflip(res))
 			mtd->ecc_stats.corrected += part->master->ecc_stats.corrected - stats.corrected;
@@ -129,8 +128,7 @@ static int part_write(struct mtd_info *mtd, loff_t to, size_t len,
 		len = 0;
 	else if (to + len > mtd->size)
 		len = mtd->size - to;
-	return part->master->write(part->master, to + part->offset,
-				    len, retlen, buf);
+	return mtd_write(part->master, to + part->offset, len, retlen, buf);
 }
 
 static int part_panic_write(struct mtd_info *mtd, loff_t to, size_t len,
@@ -186,7 +184,7 @@ static int part_erase(struct mtd_info *mtd, struct erase_info *instr)
 	if (instr->addr >= mtd->size)
 		return -EINVAL;
 	instr->addr += part->offset;
-	ret = part->master->erase(part->master, instr);
+	ret = mtd_erase(part->master, instr);
 	if (ret) {
 		if (instr->fail_addr != MTD_FAIL_ADDR_UNKNOWN)
 			instr->fail_addr -= part->offset;

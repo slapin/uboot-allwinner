@@ -70,7 +70,7 @@ concat_read(struct mtd_info *mtd, loff_t from, size_t len,
 			/* Entire transaction goes into this subdev */
 			size = len;
 
-		err = subdev->read(subdev, from, size, &retsize, buf);
+		err = mtd_read(subdev, from, size, &retsize, buf);
 
 		/* Save information about bitflips! */
 		if (unlikely(err)) {
@@ -127,7 +127,7 @@ concat_write(struct mtd_info *mtd, loff_t to, size_t len,
 		if (!(subdev->flags & MTD_WRITEABLE))
 			err = -EROFS;
 		else
-			err = subdev->write(subdev, to, size, &retsize, buf);
+			err = mtd_write(subdev, to, size, &retsize, buf);
 
 		if (err)
 			break;
@@ -271,7 +271,7 @@ static int concat_dev_erase(struct mtd_info *mtd, struct erase_info *erase)
 	 * FIXME: Allow INTERRUPTIBLE. Which means
 	 * not having the wait_queue head on the stack.
 	 */
-	err = mtd->erase(mtd, erase);
+	err = mtd_erase(mtd, erase);
 	if (!err) {
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		add_wait_queue(&waitq, &wait);

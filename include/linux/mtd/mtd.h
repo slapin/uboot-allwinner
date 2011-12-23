@@ -132,11 +132,8 @@ struct mtd_info {
 	struct mtd_erase_region_info *eraseregions;
 
 	/*
-	 * Erase is an asynchronous operation.  Device drivers are supposed
-	 * to call instr->callback() whenever the operation completes, even
-	 * if it completes with a failure.
-	 * Callers are supposed to pass a callback function and wait for it
-	 * to be called before writing to the block.
+	 * Do not call via these pointers, use corresponding mtd_*()
+	 * wrappers instead.
 	 */
 	int (*erase) (struct mtd_info *mtd, struct erase_info *instr);
 
@@ -149,8 +146,10 @@ struct mtd_info {
 	void (*unpoint) (struct mtd_info *mtd, loff_t from, size_t len);
 
 
-	int (*read) (struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, u_char *buf);
-	int (*write) (struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const u_char *buf);
+	int (*read) (struct mtd_info *mtd, loff_t from, size_t len,
+		     size_t *retlen, u_char *buf);
+	int (*write) (struct mtd_info *mtd, loff_t to, size_t len,
+		      size_t *retlen, const u_char *buf);
 
 	/* In blackbox flight recorder like scenarios we want to make successful
 	   writes in interrupt context. panic_write() is only intended to be
@@ -220,6 +219,30 @@ struct mtd_info {
 	int (*get_device) (struct mtd_info *mtd);
 	void (*put_device) (struct mtd_info *mtd);
 };
+
+/*
+ * Erase is an asynchronous operation.  Device drivers are supposed
+ * to call instr->callback() whenever the operation completes, even
+ * if it completes with a failure.
+ * Callers are supposed to pass a callback function and wait for it
+ * to be called before writing to the block.
+ */
+static inline int mtd_erase(struct mtd_info *mtd, struct erase_info *instr)
+{
+	return mtd->erase(mtd, instr);
+}
+
+static inline int mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
+			   size_t *retlen, u_char *buf)
+{
+	return mtd->read(mtd, from, len, retlen, buf);
+}
+
+static inline int mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
+			    size_t *retlen, const u_char *buf)
+{
+	return mtd->write(mtd, to, len, retlen, buf);
+}
 
 static inline uint32_t mtd_div_by_eb(uint64_t sz, struct mtd_info *mtd)
 {
