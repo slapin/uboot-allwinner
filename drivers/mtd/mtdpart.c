@@ -208,7 +208,7 @@ static int part_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	struct mtd_part *part = PART(mtd);
 	if ((len + ofs) > mtd->size)
 		return -EINVAL;
-	return part->master->lock(part->master, ofs + part->offset, len);
+	return mtd_lock(part->master, ofs + part->offset, len);
 }
 
 static int part_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
@@ -216,7 +216,7 @@ static int part_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	struct mtd_part *part = PART(mtd);
 	if ((len + ofs) > mtd->size)
 		return -EINVAL;
-	return part->master->unlock(part->master, ofs + part->offset, len);
+	return mtd_unlock(part->master, ofs + part->offset, len);
 }
 
 static void part_sync(struct mtd_info *mtd)
@@ -231,7 +231,7 @@ static int part_block_isbad(struct mtd_info *mtd, loff_t ofs)
 	if (ofs >= mtd->size)
 		return -EINVAL;
 	ofs += part->offset;
-	return part->master->block_isbad(part->master, ofs);
+	return mtd_block_isbad(part->master, ofs);
 }
 
 static int part_block_markbad(struct mtd_info *mtd, loff_t ofs)
@@ -244,7 +244,7 @@ static int part_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	if (ofs >= mtd->size)
 		return -EINVAL;
 	ofs += part->offset;
-	res = part->master->block_markbad(part->master, ofs);
+	res = mtd_block_markbad(part->master, ofs);
 	if (!res)
 		mtd->ecc_stats.badblocks++;
 	return res;
@@ -413,8 +413,7 @@ static struct mtd_part *add_one_partition(struct mtd_info *master,
 		uint64_t offs = 0;
 
 		while (offs < slave->mtd.size) {
-			if (master->block_isbad(master,
-						offs + slave->offset))
+			if (mtd_block_isbad(master, offs + slave->offset))
 				slave->mtd.ecc_stats.badblocks++;
 			offs += slave->mtd.erasesize;
 		}

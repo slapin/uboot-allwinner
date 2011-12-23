@@ -177,6 +177,10 @@ struct mtd_info {
 	int (*lock_user_prot_reg) (struct mtd_info *mtd, loff_t from,
 				   size_t len);
 	void (*sync) (struct mtd_info *mtd);
+	int (*lock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
+	int (*unlock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
+	int (*block_isbad) (struct mtd_info *mtd, loff_t ofs);
+	int (*block_markbad) (struct mtd_info *mtd, loff_t ofs);
 
 /* XXX U-BOOT XXX */
 #if 0
@@ -186,15 +190,6 @@ struct mtd_info {
 	*/
 	int (*writev) (struct mtd_info *mtd, const struct kvec *vecs, unsigned long count, loff_t to, size_t *retlen);
 #endif
-
-	/* Chip-supported device locking */
-	int (*lock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
-	int (*unlock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
-
-	/* Bad block management functions */
-	int (*block_isbad) (struct mtd_info *mtd, loff_t ofs);
-	int (*block_markbad) (struct mtd_info *mtd, loff_t ofs);
-
 /* XXX U-BOOT XXX */
 #if 0
 	struct notifier_block reboot_notifier;  /* default mode before reboot */
@@ -302,6 +297,27 @@ static inline int mtd_lock_user_prot_reg(struct mtd_info *mtd, loff_t from,
 static inline void mtd_sync(struct mtd_info *mtd)
 {
 	mtd->sync(mtd);
+}
+
+/* Chip-supported device locking */
+static inline int mtd_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
+{
+	return mtd->lock(mtd, ofs, len);
+}
+
+static inline int mtd_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
+{
+	return mtd->unlock(mtd, ofs, len);
+}
+
+static inline int mtd_block_isbad(struct mtd_info *mtd, loff_t ofs)
+{
+	return mtd->block_isbad(mtd, ofs);
+}
+
+static inline int mtd_block_markbad(struct mtd_info *mtd, loff_t ofs)
+{
+	return mtd->block_markbad(mtd, ofs);
 }
 
 static inline uint32_t mtd_div_by_eb(uint64_t sz, struct mtd_info *mtd)

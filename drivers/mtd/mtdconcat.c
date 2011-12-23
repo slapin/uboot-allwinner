@@ -446,7 +446,7 @@ static int concat_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 		else
 			size = len;
 
-		err = subdev->lock(subdev, ofs, size);
+		err = mtd_lock(subdev, ofs, size);
 
 		if (err)
 			break;
@@ -484,7 +484,7 @@ static int concat_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 		else
 			size = len;
 
-		err = subdev->unlock(subdev, ofs, size);
+		err = mtd_unlock(subdev, ofs, size);
 
 		if (err)
 			break;
@@ -530,7 +530,7 @@ static int concat_block_isbad(struct mtd_info *mtd, loff_t ofs)
 			continue;
 		}
 
-		res = subdev->block_isbad(subdev, ofs);
+		res = mtd_block_isbad(subdev, ofs);
 		break;
 	}
 
@@ -556,7 +556,7 @@ static int concat_block_markbad(struct mtd_info *mtd, loff_t ofs)
 			continue;
 		}
 
-		err = subdev->block_markbad(subdev, ofs);
+		err = mtd_block_markbad(subdev, ofs);
 		if (!err)
 			mtd->ecc_stats.badblocks++;
 		break;

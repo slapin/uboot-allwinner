@@ -516,7 +516,7 @@ int ubi_io_is_bad(const struct ubi_device *ubi, int pnum)
 	if (ubi->bad_allowed) {
 		int ret;
 
-		ret = mtd->block_isbad(mtd, (loff_t)pnum * ubi->peb_size);
+		ret = mtd_block_isbad(mtd, (loff_t)pnum * ubi->peb_size);
 		if (ret < 0)
 			ubi_err("error %d while checking if PEB %d is bad",
 				ret, pnum);
@@ -551,7 +551,7 @@ int ubi_io_mark_bad(const struct ubi_device *ubi, int pnum)
 	if (!ubi->bad_allowed)
 		return 0;
 
-	err = mtd->block_markbad(mtd, (loff_t)pnum * ubi->peb_size);
+	err = mtd_block_markbad(mtd, (loff_t)pnum * ubi->peb_size);
 	if (err)
 		ubi_err("cannot mark PEB %d bad, error %d", pnum, err);
 	return err;
