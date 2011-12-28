@@ -233,18 +233,21 @@ static inline int mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
 static inline int mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
 			    size_t *retlen, const u_char *buf)
 {
+	*retlen = 0;
 	return mtd->write(mtd, to, len, retlen, buf);
 }
 
 static inline int mtd_read_oob(struct mtd_info *mtd, loff_t from,
 			       struct mtd_oob_ops *ops)
 {
+	ops->retlen = ops->oobretlen = 0;
 	return mtd->read_oob(mtd, from, ops);
 }
 
 static inline int mtd_write_oob(struct mtd_info *mtd, loff_t to,
 				struct mtd_oob_ops *ops)
 {
+	ops->retlen = ops->oobretlen = 0;
 	return mtd->write_oob(mtd, to, ops);
 }
 
@@ -263,6 +266,7 @@ static inline int mtd_read_fact_prot_reg(struct mtd_info *mtd, loff_t from,
 					 size_t len, size_t *retlen,
 					 u_char *buf)
 {
+	*retlen = 0;
 	return mtd->read_fact_prot_reg(mtd, from, len, retlen, buf);
 }
 
@@ -277,6 +281,7 @@ static inline int mtd_read_user_prot_reg(struct mtd_info *mtd, loff_t from,
 					 size_t len, size_t *retlen,
 					 u_char *buf)
 {
+	*retlen = 0;
 	return mtd->read_user_prot_reg(mtd, from, len, retlen, buf);
 }
 
@@ -284,6 +289,7 @@ static inline int mtd_write_user_prot_reg(struct mtd_info *mtd, loff_t to,
 					  size_t len, size_t *retlen,
 					  u_char *buf)
 {
+	*retlen = 0;
 	return mtd->write_user_prot_reg(mtd, to, len, retlen, buf);
 }
 
