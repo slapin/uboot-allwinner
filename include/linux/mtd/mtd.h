@@ -181,6 +181,12 @@ struct mtd_info {
 	int (*unlock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
 	int (*block_isbad) (struct mtd_info *mtd, loff_t ofs);
 	int (*block_markbad) (struct mtd_info *mtd, loff_t ofs);
+	/*
+	 * If the driver is something smart, like UBI, it may need to maintain
+	 * its own reference counting. The below functions are only for driver.
+	 */
+	int (*get_device) (struct mtd_info *mtd);
+	void (*put_device) (struct mtd_info *mtd);
 
 /* XXX U-BOOT XXX */
 #if 0
@@ -204,13 +210,6 @@ struct mtd_info {
 
 	struct module *owner;
 	int usecount;
-
-	/* If the driver is something smart, like UBI, it may need to maintain
-	 * its own reference counting. The below functions are only for driver.
-	 * The driver may register its callbacks. These callbacks are not
-	 * supposed to be called by MTD users */
-	int (*get_device) (struct mtd_info *mtd);
-	void (*put_device) (struct mtd_info *mtd);
 };
 
 /*
