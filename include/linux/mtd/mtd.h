@@ -331,11 +331,15 @@ static inline void mtd_sync(struct mtd_info *mtd)
 /* Chip-supported device locking */
 static inline int mtd_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 {
+	if (!mtd->lock)
+		return -EOPNOTSUPP;
 	return mtd->lock(mtd, ofs, len);
 }
 
 static inline int mtd_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 {
+	if (!mtd->unlock)
+		return -EOPNOTSUPP;
 	return mtd->unlock(mtd, ofs, len);
 }
 
