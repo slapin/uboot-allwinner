@@ -316,6 +316,11 @@ static inline int mtd_lock_user_prot_reg(struct mtd_info *mtd, loff_t from,
 		return -EOPNOTSUPP;
 	return mtd->lock_user_prot_reg(mtd, from, len);
 }
+/* XXX U-BOOT XXX */
+#if 0
+int mtd_writev(struct mtd_info *mtd, const struct kvec *vecs,
+	       unsigned long count, loff_t to, size_t *retlen);
+#endif
 
 static inline void mtd_sync(struct mtd_info *mtd)
 {
@@ -381,9 +386,6 @@ struct mtd_notifier {
 
 extern void register_mtd_user (struct mtd_notifier *new);
 extern int unregister_mtd_user (struct mtd_notifier *old);
-
-int default_mtd_writev(struct mtd_info *mtd, const struct kvec *vecs,
-		       unsigned long count, loff_t to, size_t *retlen);
 #endif
 
 #ifdef CONFIG_MTD_PARTITIONS
