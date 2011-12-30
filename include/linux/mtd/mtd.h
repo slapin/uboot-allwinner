@@ -361,9 +361,6 @@ extern int unregister_mtd_user (struct mtd_notifier *old);
 
 int default_mtd_writev(struct mtd_info *mtd, const struct kvec *vecs,
 		       unsigned long count, loff_t to, size_t *retlen);
-
-int default_mtd_readv(struct mtd_info *mtd, struct kvec *vecs,
-		      unsigned long count, loff_t from, size_t *retlen);
 #endif
 
 #ifdef CONFIG_MTD_PARTITIONS
