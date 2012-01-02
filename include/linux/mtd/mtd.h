@@ -352,6 +352,8 @@ static inline int mtd_block_isbad(struct mtd_info *mtd, loff_t ofs)
 
 static inline int mtd_block_markbad(struct mtd_info *mtd, loff_t ofs)
 {
+	if (!mtd->block_markbad)
+		return -EOPNOTSUPP;
 	return mtd->block_markbad(mtd, ofs);
 }
 
@@ -369,6 +371,11 @@ static inline uint32_t mtd_mod_by_eb(uint64_t sz, struct mtd_info *mtd)
 static inline int mtd_has_oob(const struct mtd_info *mtd)
 {
 	return mtd->read_oob && mtd->write_oob;
+}
+
+static inline int mtd_can_have_bb(const struct mtd_info *mtd)
+{
+	return !!mtd->block_isbad;
 }
 
 	/* Kernel-side ioctl definitions */
