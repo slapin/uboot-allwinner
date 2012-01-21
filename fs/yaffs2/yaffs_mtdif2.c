@@ -83,7 +83,7 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	ops.ooboffs = 0;
 	ops.datbuf = (u8 *) data;
 	ops.oobbuf = (dev->param.inband_tags) ? NULL : packed_tags_ptr;
-	retval = mtd->write_oob(mtd, addr, &ops);
+	retval = mtd_write_oob(mtd, addr, &ops);
 
 	if (retval == 0)
 		return YAFFS_OK;
@@ -121,7 +121,7 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	}
 
 	if (dev->param.inband_tags || (data && !tags))
-		retval = mtd->read(mtd, addr, dev->param.total_bytes_per_chunk,
+		retval = mtd_read(mtd, addr, dev->param.total_bytes_per_chunk,
 				   &dummy, data);
 	else if (tags) {
 		ops.mode = MTD_OPS_AUTO_OOB;
@@ -130,7 +130,7 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 		ops.ooboffs = 0;
 		ops.datbuf = data;
 		ops.oobbuf = local_spare;
-		retval = mtd->read_oob(mtd, addr, &ops);
+		retval = mtd_read_oob(mtd, addr, &ops);
 	}
 
 	if (dev->param.inband_tags) {
@@ -179,7 +179,7 @@ int nandmtd2_MarkNANDBlockBad(struct yaffs_dev *dev, int blockNo)
 		"nandmtd2_MarkNANDBlockBad %d", blockNo);
 
 	retval =
-	    mtd->block_markbad(mtd,
+	    mtd_block_markbad(mtd,
 			       blockNo * dev->param.chunks_per_block *
 			       dev->data_bytes_per_chunk);
 
@@ -198,7 +198,7 @@ int nandmtd2_QueryNANDBlock(struct yaffs_dev *dev, int blockNo,
 
 	yaffs_trace(YAFFS_TRACE_MTD, "nandmtd2_QueryNANDBlock %d", blockNo);
 	retval =
-	    mtd->block_isbad(mtd,
+	    mtd_block_isbad(mtd,
 			     blockNo * dev->param.chunks_per_block *
 			     dev->data_bytes_per_chunk);
 

@@ -2648,14 +2648,14 @@ int onenand_probe(struct mtd_info *mtd)
 		mtd->size = this->chipsize;
 
 	mtd->flags = MTD_CAP_NANDFLASH;
-	mtd->erase = onenand_erase;
-	mtd->read = onenand_read;
-	mtd->write = onenand_write;
-	mtd->read_oob = onenand_read_oob;
-	mtd->write_oob = onenand_write_oob;
-	mtd->sync = onenand_sync;
-	mtd->block_isbad = onenand_block_isbad;
-	mtd->block_markbad = onenand_block_markbad;
+	mtd->_erase = onenand_erase;
+	mtd->_read = onenand_read;
+	mtd->_write = onenand_write;
+	mtd->_read_oob = onenand_read_oob;
+	mtd->_write_oob = onenand_write_oob;
+	mtd->_sync = onenand_sync;
+	mtd->_block_isbad = onenand_block_isbad;
+	mtd->_block_markbad = onenand_block_markbad;
 
 	return 0;
 }

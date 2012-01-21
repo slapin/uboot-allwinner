@@ -135,20 +135,13 @@ struct mtd_info {
 	 * Do not call via these pointers, use corresponding mtd_*()
 	 * wrappers instead.
 	 */
-	int (*erase) (struct mtd_info *mtd, struct erase_info *instr);
-
-	/* This stuff for eXecute-In-Place */
-	/* phys is optional and may be set to NULL */
-	int (*point) (struct mtd_info *mtd, loff_t from, size_t len,
+	int (*_erase) (struct mtd_info *mtd, struct erase_info *instr);
+	int (*_point) (struct mtd_info *mtd, loff_t from, size_t len,
 			size_t *retlen, void **virt, phys_addr_t *phys);
-
-	/* We probably shouldn't allow XIP if the unpoint isn't a NULL */
-	void (*unpoint) (struct mtd_info *mtd, loff_t from, size_t len);
-
-
-	int (*read) (struct mtd_info *mtd, loff_t from, size_t len,
+	void (*_unpoint) (struct mtd_info *mtd, loff_t from, size_t len);
+	int (*_read) (struct mtd_info *mtd, loff_t from, size_t len,
 		     size_t *retlen, u_char *buf);
-	int (*write) (struct mtd_info *mtd, loff_t to, size_t len,
+	int (*_write) (struct mtd_info *mtd, loff_t to, size_t len,
 		      size_t *retlen, const u_char *buf);
 
 	/* In blackbox flight recorder like scenarios we want to make successful
@@ -158,35 +151,35 @@ struct mtd_info {
 	   longer, this function can break locks and delay to ensure the write
 	   succeeds (but not sleep). */
 
-	int (*panic_write) (struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const u_char *buf);
+	int (*_panic_write) (struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const u_char *buf);
 
-	int (*read_oob) (struct mtd_info *mtd, loff_t from,
+	int (*_read_oob) (struct mtd_info *mtd, loff_t from,
 			 struct mtd_oob_ops *ops);
-	int (*write_oob) (struct mtd_info *mtd, loff_t to,
+	int (*_write_oob) (struct mtd_info *mtd, loff_t to,
 			 struct mtd_oob_ops *ops);
-	int (*get_fact_prot_info) (struct mtd_info *mtd, struct otp_info *buf,
+	int (*_get_fact_prot_info) (struct mtd_info *mtd, struct otp_info *buf,
 				   size_t len);
-	int (*read_fact_prot_reg) (struct mtd_info *mtd, loff_t from,
+	int (*_read_fact_prot_reg) (struct mtd_info *mtd, loff_t from,
 				   size_t len, size_t *retlen, u_char *buf);
-	int (*get_user_prot_info) (struct mtd_info *mtd, struct otp_info *buf,
+	int (*_get_user_prot_info) (struct mtd_info *mtd, struct otp_info *buf,
 				   size_t len);
-	int (*read_user_prot_reg) (struct mtd_info *mtd, loff_t from,
+	int (*_read_user_prot_reg) (struct mtd_info *mtd, loff_t from,
 				   size_t len, size_t *retlen, u_char *buf);
-	int (*write_user_prot_reg) (struct mtd_info *mtd, loff_t to, size_t len,
+	int (*_write_user_prot_reg) (struct mtd_info *mtd, loff_t to, size_t len,
 				    size_t *retlen, u_char *buf);
-	int (*lock_user_prot_reg) (struct mtd_info *mtd, loff_t from,
+	int (*_lock_user_prot_reg) (struct mtd_info *mtd, loff_t from,
 				   size_t len);
-	void (*sync) (struct mtd_info *mtd);
-	int (*lock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
-	int (*unlock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
-	int (*block_isbad) (struct mtd_info *mtd, loff_t ofs);
-	int (*block_markbad) (struct mtd_info *mtd, loff_t ofs);
+	void (*_sync) (struct mtd_info *mtd);
+	int (*_lock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
+	int (*_unlock) (struct mtd_info *mtd, loff_t ofs, uint64_t len);
+	int (*_block_isbad) (struct mtd_info *mtd, loff_t ofs);
+	int (*_block_markbad) (struct mtd_info *mtd, loff_t ofs);
 	/*
 	 * If the driver is something smart, like UBI, it may need to maintain
 	 * its own reference counting. The below functions are only for driver.
 	 */
-	int (*get_device) (struct mtd_info *mtd);
-	void (*put_device) (struct mtd_info *mtd);
+	int (*_get_device) (struct mtd_info *mtd);
+	void (*_put_device) (struct mtd_info *mtd);
 
 /* XXX U-BOOT XXX */
 #if 0
@@ -221,40 +214,40 @@ struct mtd_info {
  */
 static inline int mtd_erase(struct mtd_info *mtd, struct erase_info *instr)
 {
-	return mtd->erase(mtd, instr);
+	return mtd->_erase(mtd, instr);
 }
 
 static inline int mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
 			   size_t *retlen, u_char *buf)
 {
-	return mtd->read(mtd, from, len, retlen, buf);
+	return mtd->_read(mtd, from, len, retlen, buf);
 }
 
 static inline int mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
 			    size_t *retlen, const u_char *buf)
 {
 	*retlen = 0;
-	if (!mtd->write)
+	if (!mtd->_write)
 		return -EROFS;
-	return mtd->write(mtd, to, len, retlen, buf);
+	return mtd->_write(mtd, to, len, retlen, buf);
 }
 
 static inline int mtd_read_oob(struct mtd_info *mtd, loff_t from,
 			       struct mtd_oob_ops *ops)
 {
 	ops->retlen = ops->oobretlen = 0;
-	if (!mtd->read_oob)
+	if (!mtd->_read_oob)
 		return -EOPNOTSUPP;
-	return mtd->read_oob(mtd, from, ops);
+	return mtd->_read_oob(mtd, from, ops);
 }
 
 static inline int mtd_write_oob(struct mtd_info *mtd, loff_t to,
 				struct mtd_oob_ops *ops)
 {
 	ops->retlen = ops->oobretlen = 0;
-	if (!mtd->write_oob)
+	if (!mtd->_write_oob)
 		return -EOPNOTSUPP;
-	return mtd->write_oob(mtd, to, ops);
+	return mtd->_write_oob(mtd, to, ops);
 }
 
 /*
@@ -265,9 +258,9 @@ static inline int mtd_write_oob(struct mtd_info *mtd, loff_t to,
 static inline int mtd_get_fact_prot_info(struct mtd_info *mtd,
 					 struct otp_info *buf, size_t len)
 {
-	if (!mtd->get_fact_prot_info)
+	if (!mtd->_get_fact_prot_info)
 		return -EOPNOTSUPP;
-	return mtd->get_fact_prot_info(mtd, buf, len);
+	return mtd->_get_fact_prot_info(mtd, buf, len);
 }
 
 static inline int mtd_read_fact_prot_reg(struct mtd_info *mtd, loff_t from,
@@ -275,18 +268,18 @@ static inline int mtd_read_fact_prot_reg(struct mtd_info *mtd, loff_t from,
 					 u_char *buf)
 {
 	*retlen = 0;
-	if (!mtd->read_fact_prot_reg)
+	if (!mtd->_read_fact_prot_reg)
 		return -EOPNOTSUPP;
-	return mtd->read_fact_prot_reg(mtd, from, len, retlen, buf);
+	return mtd->_read_fact_prot_reg(mtd, from, len, retlen, buf);
 }
 
 static inline int mtd_get_user_prot_info(struct mtd_info *mtd,
 					 struct otp_info *buf,
 					 size_t len)
 {
-	if (!mtd->get_user_prot_info)
+	if (!mtd->_get_user_prot_info)
 		return -EOPNOTSUPP;
-	return mtd->get_user_prot_info(mtd, buf, len);
+	return mtd->_get_user_prot_info(mtd, buf, len);
 }
 
 static inline int mtd_read_user_prot_reg(struct mtd_info *mtd, loff_t from,
@@ -294,9 +287,9 @@ static inline int mtd_read_user_prot_reg(struct mtd_info *mtd, loff_t from,
 					 u_char *buf)
 {
 	*retlen = 0;
-	if (!mtd->read_user_prot_reg)
+	if (!mtd->_read_user_prot_reg)
 		return -EOPNOTSUPP;
-	return mtd->read_user_prot_reg(mtd, from, len, retlen, buf);
+	return mtd->_read_user_prot_reg(mtd, from, len, retlen, buf);
 }
 
 static inline int mtd_write_user_prot_reg(struct mtd_info *mtd, loff_t to,
@@ -304,17 +297,17 @@ static inline int mtd_write_user_prot_reg(struct mtd_info *mtd, loff_t to,
 					  u_char *buf)
 {
 	*retlen = 0;
-	if (!mtd->write_user_prot_reg)
+	if (!mtd->_write_user_prot_reg)
 		return -EOPNOTSUPP;
-	return mtd->write_user_prot_reg(mtd, to, len, retlen, buf);
+	return mtd->_write_user_prot_reg(mtd, to, len, retlen, buf);
 }
 
 static inline int mtd_lock_user_prot_reg(struct mtd_info *mtd, loff_t from,
 					 size_t len)
 {
-	if (!mtd->lock_user_prot_reg)
+	if (!mtd->_lock_user_prot_reg)
 		return -EOPNOTSUPP;
-	return mtd->lock_user_prot_reg(mtd, from, len);
+	return mtd->_lock_user_prot_reg(mtd, from, len);
 }
 /* XXX U-BOOT XXX */
 #if 0
@@ -324,37 +317,37 @@ int mtd_writev(struct mtd_info *mtd, const struct kvec *vecs,
 
 static inline void mtd_sync(struct mtd_info *mtd)
 {
-	if (mtd->sync)
-		mtd->sync(mtd);
+	if (mtd->_sync)
+		mtd->_sync(mtd);
 }
 
 /* Chip-supported device locking */
 static inline int mtd_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 {
-	if (!mtd->lock)
+	if (!mtd->_lock)
 		return -EOPNOTSUPP;
-	return mtd->lock(mtd, ofs, len);
+	return mtd->_lock(mtd, ofs, len);
 }
 
 static inline int mtd_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 {
-	if (!mtd->unlock)
+	if (!mtd->_unlock)
 		return -EOPNOTSUPP;
-	return mtd->unlock(mtd, ofs, len);
+	return mtd->_unlock(mtd, ofs, len);
 }
 
 static inline int mtd_block_isbad(struct mtd_info *mtd, loff_t ofs)
 {
-	if (!mtd->block_isbad)
+	if (!mtd->_block_isbad)
 		return -EOPNOTSUPP;
-	return mtd->block_isbad(mtd, ofs);
+	return mtd->_block_isbad(mtd, ofs);
 }
 
 static inline int mtd_block_markbad(struct mtd_info *mtd, loff_t ofs)
 {
-	if (!mtd->block_markbad)
+	if (!mtd->_block_markbad)
 		return -EOPNOTSUPP;
-	return mtd->block_markbad(mtd, ofs);
+	return mtd->_block_markbad(mtd, ofs);
 }
 
 static inline uint32_t mtd_div_by_eb(uint64_t sz, struct mtd_info *mtd)
@@ -370,12 +363,12 @@ static inline uint32_t mtd_mod_by_eb(uint64_t sz, struct mtd_info *mtd)
 
 static inline int mtd_has_oob(const struct mtd_info *mtd)
 {
-	return mtd->read_oob && mtd->write_oob;
+	return mtd->_read_oob && mtd->_write_oob;
 }
 
 static inline int mtd_can_have_bb(const struct mtd_info *mtd)
 {
-	return !!mtd->block_isbad;
+	return !!mtd->_block_isbad;
 }
 
 	/* Kernel-side ioctl definitions */

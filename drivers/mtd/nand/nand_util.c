@@ -121,7 +121,7 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 		WATCHDOG_RESET();
 
 		if (!opts->scrub && bbtest) {
-			int ret = meminfo->block_isbad(meminfo, erase.addr);
+			int ret = mtd_block_isbad(meminfo, erase.addr);
 			if (ret > 0) {
 				if (!opts->quiet)
 					printf("\rSkipping bad block at  "
@@ -144,7 +144,7 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 
 		erased_length++;
 
-		result = meminfo->erase(meminfo, &erase);
+		result = mtd_erase(meminfo, &erase);
 		if (result != 0) {
 			printf("\n%s: MTD Erase failure: %d\n",
 			       mtd_device, result);
@@ -160,7 +160,7 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 			ops.ooboffs = 0;
 			ops.mode = MTD_OPS_AUTO_OOB;
 
-			result = meminfo->write_oob(meminfo,
+			result = mtd_write_oob(meminfo,
 			                            erase.addr,
 			                            &ops);
 			if (result != 0) {
