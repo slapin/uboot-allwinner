@@ -134,13 +134,6 @@ static int check_offs_len(struct mtd_info *mtd,
 		ret = -EINVAL;
 	}
 
-	/* Do not allow past end of device */
-	if (ofs + len > mtd->size) {
-		MTDDEBUG(MTD_DEBUG_LEVEL0, "%s: Past end of device\n",
-					__func__);
-		ret = -EINVAL;
-	}
-
 	return ret;
 }
 
@@ -1386,25 +1379,17 @@ static int nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	struct mtd_oob_ops ops;
 	int ret;
 
-	/* Do not allow reads past end of device */
-	if ((from + len) > mtd->size)
-		return -EINVAL;
 	if (!len)
 		return 0;
 
 	nand_get_device(chip, mtd, FL_READING);
-
 	ops.len = len;
 	ops.datbuf = buf;
 	ops.oobbuf = NULL;
 	ops.mode = 0;
-
 	ret = nand_do_read_ops(mtd, from, &ops);
-
 	*retlen = ops.retlen;
-
 	nand_release_device(mtd);
-
 	return ret;
 }
 
@@ -2090,25 +2075,17 @@ static int nand_write(struct mtd_info *mtd, loff_t to, size_t len,
 	struct mtd_oob_ops ops;
 	int ret;
 
-	/* Do not allow writes past end of device */
-	if ((to + len) > mtd->size)
-		return -EINVAL;
 	if (!len)
 		return 0;
 
 	nand_get_device(chip, mtd, FL_WRITING);
-
 	ops.len = len;
 	ops.datbuf = (uint8_t *)buf;
 	ops.oobbuf = NULL;
 	ops.mode = 0;
-
 	ret = nand_do_write_ops(mtd, to, &ops);
-
 	*retlen = ops.retlen;
-
 	nand_release_device(mtd);
-
 	return ret;
 }
 
@@ -2473,10 +2450,6 @@ static void nand_sync(struct mtd_info *mtd)
  */
 static int nand_block_isbad(struct mtd_info *mtd, loff_t offs)
 {
-	/* Check for invalid offset */
-	if (offs > mtd->size)
-		return -EINVAL;
-
 	return nand_block_checkbad(mtd, offs, 1, 0);
 }
 
