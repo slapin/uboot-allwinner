@@ -1408,12 +1408,6 @@ static int onenand_write_ops_nolock(struct mtd_info *mtd, loff_t to,
 	ops->retlen = 0;
 	ops->oobretlen = 0;
 
-	/* Do not allow writes past end of device */
-	if (unlikely((to + len) > mtd->size)) {
-		printk(KERN_ERR "onenand_write_ops_nolock: Attempt write to past end of device\n");
-		return -EINVAL;
-	}
-
 	/* Reject writes, which are not page aligned */
 	if (unlikely(NOTALIGNED(to) || NOTALIGNED(len))) {
 		printk(KERN_ERR "onenand_write_ops_nolock: Attempt to write not page aligned data\n");
@@ -1723,13 +1717,6 @@ int onenand_erase(struct mtd_info *mtd, struct erase_info *instr)
 
 	MTDDEBUG(MTD_DEBUG_LEVEL3, "onenand_erase: start = 0x%08x, len = %i\n",
 			(unsigned int) addr, len);
-
-	/* Do not allow erase past end of device */
-	if (unlikely((len + addr) > mtd->size)) {
-		MTDDEBUG(MTD_DEBUG_LEVEL0, "onenand_erase:"
-					"Erase past end of device\n");
-		return -EINVAL;
-	}
 
 	if (FLEXONENAND(this)) {
 		/* Find the eraseregion of this address */

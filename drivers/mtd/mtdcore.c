@@ -198,6 +198,8 @@ int mtd_erase(struct mtd_info *mtd, struct erase_info *instr)
 {
 	if (instr->addr > mtd->size || instr->len > mtd->size - instr->addr)
 		return -EINVAL;
+	if (!(mtd->flags & MTD_WRITEABLE))
+		return -EROFS;
 	return mtd->_erase(mtd, instr);
 }
 
@@ -213,10 +215,10 @@ int mtd_write(struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen,
 	      const u_char *buf)
 {
 	*retlen = 0;
-	if (!mtd->_write)
-		return -EROFS;
 	if (to < 0 || to > mtd->size || len > mtd->size - to)
 		return -EINVAL;
+	if (!mtd->_write || !(mtd->flags & MTD_WRITEABLE))
+		return -EROFS;
 	return mtd->_write(mtd, to, len, retlen, buf);
 }
 
@@ -235,6 +237,8 @@ int mtd_panic_write(struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen,
 		return -EOPNOTSUPP;
 	if (to < 0 || to > mtd->size || len > mtd->size - to)
 		return -EINVAL;
+	if (!(mtd->flags & MTD_WRITEABLE))
+		return -EROFS;
 	return mtd->_panic_write(mtd, to, len, retlen, buf);
 }
 
@@ -272,6 +276,8 @@ int mtd_block_markbad(struct mtd_info *mtd, loff_t ofs)
 		return -EOPNOTSUPP;
 	if (ofs < 0 || ofs > mtd->size)
 		return -EINVAL;
+	if (!(mtd->flags & MTD_WRITEABLE))
+		return -EROFS;
 	return mtd->_block_markbad(mtd, ofs);
 }
 

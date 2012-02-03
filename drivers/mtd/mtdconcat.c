@@ -105,9 +105,6 @@ concat_write(struct mtd_info *mtd, loff_t to, size_t len,
 	int err = -EINVAL;
 	int i;
 
-	if (!(mtd->flags & MTD_WRITEABLE))
-		return -EROFS;
-
 	*retlen = 0;
 
 	for (i = 0; i < concat->num_subdev; i++) {
@@ -124,11 +121,7 @@ concat_write(struct mtd_info *mtd, loff_t to, size_t len,
 		else
 			size = len;
 
-		if (!(subdev->flags & MTD_WRITEABLE))
-			err = -EROFS;
-		else
-			err = mtd_write(subdev, to, size, &retsize, buf);
-
+		err = mtd_write(subdev, to, size, &retsize, buf);
 		if (err)
 			break;
 
@@ -294,9 +287,6 @@ static int concat_erase(struct mtd_info *mtd, struct erase_info *instr)
 	uint64_t length, offset = 0;
 	struct erase_info *erase;
 
-	if (!(mtd->flags & MTD_WRITEABLE))
-		return -EROFS;
-
 	/*
 	 * Check for proper erase block alignment of the to-be-erased area.
 	 * It is easier to do this based on the super device's erase
@@ -384,10 +374,6 @@ static int concat_erase(struct mtd_info *mtd, struct erase_info *instr)
 		else
 			erase->len = length;
 
-		if (!(subdev->flags & MTD_WRITEABLE)) {
-			err = -EROFS;
-			break;
-		}
 		length -= erase->len;
 		if ((err = concat_dev_erase(subdev, erase))) {
 			/* sanity check: should never happen since

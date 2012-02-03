@@ -115,8 +115,6 @@ static int part_write(struct mtd_info *mtd, loff_t to, size_t len,
 		size_t *retlen, const u_char *buf)
 {
 	struct mtd_part *part = PART(mtd);
-	if (!(mtd->flags & MTD_WRITEABLE))
-		return -EROFS;
 	return mtd_write(part->master, to + part->offset, len, retlen, buf);
 }
 
@@ -124,9 +122,6 @@ static int part_write_oob(struct mtd_info *mtd, loff_t to,
 		struct mtd_oob_ops *ops)
 {
 	struct mtd_part *part = PART(mtd);
-
-	if (!(mtd->flags & MTD_WRITEABLE))
-		return -EROFS;
 
 	if (to >= mtd->size)
 		return -EINVAL;
@@ -153,8 +148,7 @@ static int part_erase(struct mtd_info *mtd, struct erase_info *instr)
 {
 	struct mtd_part *part = PART(mtd);
 	int ret;
-	if (!(mtd->flags & MTD_WRITEABLE))
-		return -EROFS;
+
 	instr->addr += part->offset;
 	ret = mtd_erase(part->master, instr);
 	if (ret) {
@@ -208,8 +202,6 @@ static int part_block_markbad(struct mtd_info *mtd, loff_t ofs)
 	struct mtd_part *part = PART(mtd);
 	int res;
 
-	if (!(mtd->flags & MTD_WRITEABLE))
-		return -EROFS;
 	ofs += part->offset;
 	res = mtd_block_markbad(part->master, ofs);
 	if (!res)
