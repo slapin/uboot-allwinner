@@ -2864,9 +2864,11 @@ ident_done:
 	if (chip->onfi_version)
 		name = chip->onfi_params.model;
 #endif
-	pr_info("NAND device: Manufacturer ID:"
-		 " 0x%02x, Chip ID: 0x%02x (%s %s)\n", *maf_id, *dev_id,
-		 nand_manuf_ids[maf_idx].name, name);
+	pr_info("NAND device: Manufacturer ID: 0x%02x, Chip ID: 0x%02x (%s %s),"
+		" page size: %d, OOB size: %d\n",
+		*maf_id, *dev_id, nand_manuf_ids[maf_idx].name,
+		name,
+		mtd->writesize, mtd->oobsize);
 
 	return type;
 }
