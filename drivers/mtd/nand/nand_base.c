@@ -3192,8 +3192,9 @@ int nand_scan_tail(struct mtd_info *mtd)
 	mtd->_block_isbad = nand_block_isbad;
 	mtd->_block_markbad = nand_block_markbad;
 
-	/* propagate ecc.layout to mtd_info */
+	/* propagate ecc info to mtd_info */
 	mtd->ecclayout = chip->ecc.layout;
+	mtd->ecc_strength = chip->ecc.strength;
 
 	/* Check, if we should skip the bad block table scan */
 	if (chip->options & NAND_SKIP_BBTSCAN)
