@@ -118,6 +118,15 @@ struct mtd_info {
 	u_int32_t oobsize;   /* Amount of OOB data per block (e.g. 16) */
 	u_int32_t oobavail;  /* Available OOB bytes per block */
 
+	/*
+	 * read ops return -EUCLEAN if max number of bitflips corrected on any
+	 * one region comprising an ecc step equals or exceeds this value.
+	 * Settable by driver, else defaults to ecc_strength.  User can override
+	 * in sysfs.  N.B. The meaning of the -EUCLEAN return code has changed;
+	 * see Documentation/ABI/testing/sysfs-class-mtd for more detail.
+	 */
+	unsigned int bitflip_threshold;
+
 	/* Kernel-only stuff starts here. */
 	const char *name;
 	int index;

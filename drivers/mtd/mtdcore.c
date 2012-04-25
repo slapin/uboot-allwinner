@@ -25,6 +25,11 @@ int add_mtd_device(struct mtd_info *mtd)
 			mtd->index = i;
 			mtd->usecount = 0;
 
+			/* default value if not set by driver */
+			if (mtd->bitflip_threshold == 0)
+				mtd->bitflip_threshold = mtd->ecc_strength;
+
+
 			/* No need to get a refcount on the module containing
 			   the notifier, since we hold the mtd_table_mutex */
 
