@@ -647,6 +647,7 @@ struct platform_nand_ctrl {
 	int (*dev_ready)(struct mtd_info *mtd);
 	void (*select_chip)(struct mtd_info *mtd, int chip);
 	void (*cmd_ctrl)(struct mtd_info *mtd, int dat, unsigned int ctrl);
+	unsigned char (*read_byte)(struct mtd_info *mtd);
 	void *priv;
 };
 
