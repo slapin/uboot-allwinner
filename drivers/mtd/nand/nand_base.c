@@ -2568,7 +2568,7 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd, struct nand_chip *chip,
 	if (le16_to_cpu(p->features) & 1)
 		*busw = NAND_BUSWIDTH_16;
 
-	chip->options |= NAND_NO_READRDY | NAND_NO_AUTOINCR;
+	chip->options |= NAND_NO_READRDY;
 
 	pr_info("ONFI flash detected\n");
 	return 1;
@@ -2752,11 +2752,6 @@ static const struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	if (*maf_id != NAND_MFR_SAMSUNG && !type->pagesize)
 		chip->options &= ~NAND_SAMSUNG_LP_OPTIONS;
 ident_done:
-
-	/*
-	 * Set chip as a default. Board drivers can override it, if necessary.
-	 */
-	chip->options |= NAND_NO_AUTOINCR;
 
 	/* Try to identify manufacturer */
 	for (maf_idx = 0; nand_manuf_ids[maf_idx].id != 0x0; maf_idx++) {

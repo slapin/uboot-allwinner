@@ -852,7 +852,7 @@ int board_nand_init(struct nand_chip *nand)
 	nand->bbt_md = &bbt_mirror_descr;
 
 	/* set up nand options */
-	nand->options = NAND_NO_READRDY | NAND_NO_AUTOINCR |
+	nand->options = NAND_NO_READRDY |
 			NAND_USE_FLASH_BBT | NAND_NO_SUBPAGE_WRITE;
 
 	if (cspr & CSPR_PORT_SIZE_16) {
