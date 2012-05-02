@@ -686,9 +686,8 @@ static int fsl_ifc_wait(struct mtd_info *mtd, struct nand_chip *chip)
 	return nand_fsr;
 }
 
-static int fsl_ifc_read_page(struct mtd_info *mtd,
-			      struct nand_chip *chip,
-			      uint8_t *buf, int page)
+static int fsl_ifc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
+			     uint8_t *buf, int oob_required, int page)
 {
 	struct fsl_ifc_mtd *priv = chip->priv;
 	struct fsl_ifc_ctrl *ctrl = priv->ctrl;
@@ -705,9 +704,8 @@ static int fsl_ifc_read_page(struct mtd_info *mtd,
 /* ECC will be calculated automatically, and errors will be detected in
  * waitfunc.
  */
-static void fsl_ifc_write_page(struct mtd_info *mtd,
-				struct nand_chip *chip,
-				const uint8_t *buf)
+static void fsl_ifc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
+			       const uint8_t *buf, int oob_required)
 {
 	fsl_ifc_write_buf(mtd, buf, mtd->writesize);
 	fsl_ifc_write_buf(mtd, chip->oob_poi, mtd->oobsize);

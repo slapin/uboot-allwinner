@@ -828,12 +828,13 @@ static int nand_wait(struct mtd_info *mtd, struct nand_chip *chip)
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: buffer to store read data
+ * @oob_required: caller requires OOB data read to chip->oob_poi
  * @page: page number to read
  *
  * Not for syndrome calculating ECC controllers, which use a special oob layout.
  */
 static int nand_read_page_raw(struct mtd_info *mtd, struct nand_chip *chip,
-			      uint8_t *buf, int page)
+			      uint8_t *buf, int oob_required, int page)
 {
 	chip->read_buf(mtd, buf, mtd->writesize);
 	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
@@ -845,13 +846,14 @@ static int nand_read_page_raw(struct mtd_info *mtd, struct nand_chip *chip,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: buffer to store read data
+ * @oob_required: caller requires OOB data read to chip->oob_poi
  * @page: page number to read
  *
  * We need a special oob layout and handling even when OOB isn't used.
  */
 static int nand_read_page_raw_syndrome(struct mtd_info *mtd,
-					struct nand_chip *chip,
-					uint8_t *buf, int page)
+				       struct nand_chip *chip, uint8_t *buf,
+				       int oob_required, int page)
 {
 	int eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -888,10 +890,11 @@ static int nand_read_page_raw_syndrome(struct mtd_info *mtd,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: buffer to store read data
+ * @oob_required: caller requires OOB data read to chip->oob_poi
  * @page: page number to read
  */
 static int nand_read_page_swecc(struct mtd_info *mtd, struct nand_chip *chip,
-				uint8_t *buf, int page)
+				uint8_t *buf, int oob_required, int page)
 {
 	int i, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -901,7 +904,7 @@ static int nand_read_page_swecc(struct mtd_info *mtd, struct nand_chip *chip,
 	uint8_t *ecc_code = chip->buffers->ecccode;
 	uint32_t *eccpos = chip->ecc.layout->eccpos;
 
-	chip->ecc.read_page_raw(mtd, chip, buf, page);
+	chip->ecc.read_page_raw(mtd, chip, buf, 1, page);
 
 	for (i = 0; eccsteps; eccsteps--, i += eccbytes, p += eccsize)
 		chip->ecc.calculate(mtd, p, &ecc_calc[i]);
@@ -1019,12 +1022,13 @@ static int nand_read_subpage(struct mtd_info *mtd, struct nand_chip *chip,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: buffer to store read data
+ * @oob_required: caller requires OOB data read to chip->oob_poi
  * @page: page number to read
  *
  * Not for syndrome calculating ECC controllers which need a special oob layout.
  */
 static int nand_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
-				uint8_t *buf, int page)
+				uint8_t *buf, int oob_required, int page)
 {
 	int i, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -1064,6 +1068,7 @@ static int nand_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: buffer to store read data
+ * @oob_required: caller requires OOB data read to chip->oob_poi
  * @page: page number to read
  *
  * Hardware ECC for large page chips, require OOB to be read first. For this
@@ -1073,7 +1078,7 @@ static int nand_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
  * the data area, by overwriting the NAND manufacturer bad block markings.
  */
 static int nand_read_page_hwecc_oob_first(struct mtd_info *mtd,
-	struct nand_chip *chip, uint8_t *buf, int page)
+	struct nand_chip *chip, uint8_t *buf, int oob_required, int page)
 {
 	int i, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -1112,13 +1117,14 @@ static int nand_read_page_hwecc_oob_first(struct mtd_info *mtd,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: buffer to store read data
+ * @oob_required: caller requires OOB data read to chip->oob_poi
  * @page: page number to read
  *
  * The hw generator calculates the error syndrome automatically. Therefore we
  * need a special oob layout and handling.
  */
 static int nand_read_page_syndrome(struct mtd_info *mtd, struct nand_chip *chip,
-				   uint8_t *buf, int page)
+				   uint8_t *buf, int oob_required, int page)
 {
 	int i, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -1259,15 +1265,15 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 
 			/* Now read the page into the buffer */
 			if (unlikely(ops->mode == MTD_OPS_RAW))
-				ret = chip->ecc.read_page_raw(mtd, chip,
-							      bufpoi, page);
+				ret = chip->ecc.read_page_raw(mtd, chip, bufpoi,
+							      1, page);
 			else if (!aligned && NAND_HAS_SUBPAGE_READ(chip) &&
 			    !oob)
 				ret = chip->ecc.read_subpage(mtd, chip,
 							col, bytes, bufpoi);
 			else
 				ret = chip->ecc.read_page(mtd, chip, bufpoi,
-							  page);
+							  1, page);
 			if (ret < 0) {
 				if (!aligned)
 					/* Invalidate page cache */
@@ -1654,11 +1660,12 @@ out:
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: data buffer
+ * @oob_required: must write chip->oob_poi to OOB
  *
  * Not for syndrome calculating ECC controllers, which use a special oob layout.
  */
 static void nand_write_page_raw(struct mtd_info *mtd, struct nand_chip *chip,
-				const uint8_t *buf)
+				const uint8_t *buf, int oob_required)
 {
 	chip->write_buf(mtd, buf, mtd->writesize);
 	chip->write_buf(mtd, chip->oob_poi, mtd->oobsize);
@@ -1669,12 +1676,13 @@ static void nand_write_page_raw(struct mtd_info *mtd, struct nand_chip *chip,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: data buffer
+ * @oob_required: must write chip->oob_poi to OOB
  *
  * We need a special oob layout and handling even when ECC isn't checked.
  */
 static void nand_write_page_raw_syndrome(struct mtd_info *mtd,
 					struct nand_chip *chip,
-					const uint8_t *buf)
+					const uint8_t *buf, int oob_required)
 {
 	int eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -1708,9 +1716,10 @@ static void nand_write_page_raw_syndrome(struct mtd_info *mtd,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: data buffer
+ * @oob_required: must write chip->oob_poi to OOB
  */
 static void nand_write_page_swecc(struct mtd_info *mtd, struct nand_chip *chip,
-				  const uint8_t *buf)
+				  const uint8_t *buf, int oob_required)
 {
 	int i, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -1726,7 +1735,7 @@ static void nand_write_page_swecc(struct mtd_info *mtd, struct nand_chip *chip,
 	for (i = 0; i < chip->ecc.total; i++)
 		chip->oob_poi[eccpos[i]] = ecc_calc[i];
 
-	chip->ecc.write_page_raw(mtd, chip, buf);
+	chip->ecc.write_page_raw(mtd, chip, buf, 1);
 }
 
 /**
@@ -1734,9 +1743,10 @@ static void nand_write_page_swecc(struct mtd_info *mtd, struct nand_chip *chip,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: data buffer
+ * @oob_required: must write chip->oob_poi to OOB
  */
 static void nand_write_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
-				  const uint8_t *buf)
+				  const uint8_t *buf, int oob_required)
 {
 	int i, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -1762,12 +1772,14 @@ static void nand_write_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
  * @mtd: mtd info structure
  * @chip: nand chip info structure
  * @buf: data buffer
+ * @oob_required: must write chip->oob_poi to OOB
  *
  * The hw generator calculates the error syndrome automatically. Therefore we
  * need a special oob layout and handling.
  */
 static void nand_write_page_syndrome(struct mtd_info *mtd,
-				    struct nand_chip *chip, const uint8_t *buf)
+				    struct nand_chip *chip,
+				    const uint8_t *buf, int oob_required)
 {
 	int i, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -1806,21 +1818,23 @@ static void nand_write_page_syndrome(struct mtd_info *mtd,
  * @mtd: MTD device structure
  * @chip: NAND chip descriptor
  * @buf: the data to write
+ * @oob_required: must write chip->oob_poi to OOB
  * @page: page number to write
  * @cached: cached programming
  * @raw: use _raw version of write_page
  */
 static int nand_write_page(struct mtd_info *mtd, struct nand_chip *chip,
-			   const uint8_t *buf, int page, int cached, int raw)
+			   const uint8_t *buf, int oob_required, int page,
+			   int cached, int raw)
 {
 	int status;
 
 	chip->cmdfunc(mtd, NAND_CMD_SEQIN, 0x00, page);
 
 	if (unlikely(raw))
-		chip->ecc.write_page_raw(mtd, chip, buf);
+		chip->ecc.write_page_raw(mtd, chip, buf, oob_required);
 	else
-		chip->ecc.write_page(mtd, chip, buf);
+		chip->ecc.write_page(mtd, chip, buf, oob_required);
 
 	/*
 	 * Cached progamming disabled for now. Not sure if it's worth the
@@ -1999,7 +2013,7 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 			memset(chip->oob_poi, 0xff, mtd->oobsize);
 		}
 
-		ret = chip->write_page(mtd, chip, wbuf, page, cached,
+		ret = chip->write_page(mtd, chip, wbuf, 1, page, cached,
 				       (ops->mode == MTD_OPS_RAW));
 		if (ret)
 			break;

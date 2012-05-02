@@ -546,7 +546,8 @@ static uint8_t mxs_nand_read_byte(struct mtd_info *mtd)
  * Read a page from NAND.
  */
 static int mxs_nand_ecc_read_page(struct mtd_info *mtd, struct nand_chip *nand,
-					uint8_t *buf, int page)
+					uint8_t *buf, int oob_required,
+					int page)
 {
 	struct mxs_nand_info *nand_info = nand->priv;
 	struct mxs_dma_desc *d;
@@ -692,7 +693,8 @@ rtn:
  * Write a page to NAND.
  */
 static void mxs_nand_ecc_write_page(struct mtd_info *mtd,
-				struct nand_chip *nand, const uint8_t *buf)
+				struct nand_chip *nand, const uint8_t *buf,
+				int oob_required)
 {
 	struct mxs_nand_info *nand_info = nand->priv;
 	struct mxs_dma_desc *d;

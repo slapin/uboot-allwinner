@@ -707,7 +707,7 @@ static int nand_rw_page(struct mtd_info *mtd, struct nand_chip *chip,
  *		-EIO when command timeout
  */
 static int nand_read_page_hwecc(struct mtd_info *mtd,
-	struct nand_chip *chip, uint8_t *buf, int page)
+	struct nand_chip *chip, uint8_t *buf, int oob_required, int page)
 {
 	return nand_rw_page(mtd, chip, buf, page, 1, 0);
 }
@@ -720,7 +720,7 @@ static int nand_read_page_hwecc(struct mtd_info *mtd,
  * @param buf	data buffer
  */
 static void nand_write_page_hwecc(struct mtd_info *mtd,
-	struct nand_chip *chip, const uint8_t *buf)
+	struct nand_chip *chip, const uint8_t *buf, int oob_required)
 {
 	int page;
 	struct nand_drv *info;
@@ -746,7 +746,7 @@ static void nand_write_page_hwecc(struct mtd_info *mtd,
  *		-EIO when command timeout
  */
 static int nand_read_page_raw(struct mtd_info *mtd,
-	struct nand_chip *chip, uint8_t *buf, int page)
+	struct nand_chip *chip, uint8_t *buf, int oob_required, int page)
 {
 	return nand_rw_page(mtd, chip, buf, page, 0, 0);
 }
@@ -759,7 +759,7 @@ static int nand_read_page_raw(struct mtd_info *mtd,
  * @param buf	data buffer
  */
 static void nand_write_page_raw(struct mtd_info *mtd,
-		struct nand_chip *chip,	const uint8_t *buf)
+		struct nand_chip *chip,	const uint8_t *buf, int oob_required)
 {
 	int page;
 	struct nand_drv *info;

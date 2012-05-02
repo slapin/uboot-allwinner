@@ -434,6 +434,7 @@ static int mxc_nand_read_oob_syndrome(struct mtd_info *mtd,
 static int mxc_nand_read_page_raw_syndrome(struct mtd_info *mtd,
 					   struct nand_chip *chip,
 					   uint8_t *buf,
+					   int oob_required,
 					   int page)
 {
 	struct mxc_nand_host *host = chip->priv;
@@ -478,6 +479,7 @@ static int mxc_nand_read_page_raw_syndrome(struct mtd_info *mtd,
 static int mxc_nand_read_page_syndrome(struct mtd_info *mtd,
 				       struct nand_chip *chip,
 				       uint8_t *buf,
+				       int oob_required,
 				       int page)
 {
 	struct mxc_nand_host *host = chip->priv;
@@ -569,7 +571,8 @@ static int mxc_nand_write_oob_syndrome(struct mtd_info *mtd,
 
 static void mxc_nand_write_page_raw_syndrome(struct mtd_info *mtd,
 					     struct nand_chip *chip,
-					     const uint8_t *buf)
+					     const uint8_t *buf,
+					     int oob_required)
 {
 	struct mxc_nand_host *host = chip->priv;
 	int eccsize = chip->ecc.size;
@@ -607,7 +610,8 @@ static void mxc_nand_write_page_raw_syndrome(struct mtd_info *mtd,
 
 static void mxc_nand_write_page_syndrome(struct mtd_info *mtd,
 					 struct nand_chip *chip,
-					 const uint8_t *buf)
+					 const uint8_t *buf,
+					 int oob_required)
 {
 	struct mxc_nand_host *host = chip->priv;
 	int i, n, eccsize = chip->ecc.size;
