@@ -380,7 +380,7 @@ static void mxc_nand_enable_hwecc(struct mtd_info *mtd, int mode)
 #ifdef MXC_NFC_V2_1
 static int mxc_nand_read_oob_syndrome(struct mtd_info *mtd,
 				      struct nand_chip *chip,
-				      int page, int sndcmd)
+				      int page)
 {
 	struct mxc_nand_host *host = chip->priv;
 	uint8_t *buf = chip->oob_poi;

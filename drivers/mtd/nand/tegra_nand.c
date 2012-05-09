@@ -873,19 +873,13 @@ static int nand_rw_oob(struct mtd_info *mtd, struct nand_chip *chip,
  * @param mtd		mtd info structure
  * @param chip		nand chip info structure
  * @param page		page number to read
- * @param sndcmd	flag whether to issue read command or not
- * @return	1 - issue read command next time
- *		0 - not to issue
  */
 static int nand_read_oob(struct mtd_info *mtd, struct nand_chip *chip,
-	int page, int sndcmd)
+	int page)
 {
-	if (sndcmd) {
-		chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
-		sndcmd = 0;
-	}
+	chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
 	nand_rw_oob(mtd, chip, page, 0, 0);
-	return sndcmd;
+	return 0;
 }
 
 /**
