@@ -204,6 +204,11 @@
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
 
+/* FAT SPL support loading u-boot.img uimage */
+#define CONFIG_SPL_FAT_SUPPORT
+#define CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION 1
+#define CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME "u-boot.img"
+
 #define LOW_LEVEL_SRAM_STACK		0x00006000				/* end of 24KB in sram */
 #define CONFIG_SPL_STACK         LOW_LEVEL_SRAM_STACK
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"

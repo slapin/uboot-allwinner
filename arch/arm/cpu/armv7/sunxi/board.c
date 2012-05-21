@@ -137,11 +137,74 @@ void board_init_f(unsigned long bootflag)
 	relocate_code(CONFIG_SPL_STACK, &gdata, CONFIG_SPL_TEXT_BASE);
 }
 
+void spl_parse_image_header(const struct image_header *header)
+{
+	u32 header_size = sizeof(struct image_header);
+
+	if (__be32_to_cpu(header->ih_magic) == IH_MAGIC) {
+		spl_image.size = __be32_to_cpu(header->ih_size) + header_size;
+		spl_image.entry_point = __be32_to_cpu(header->ih_load);
+		/* Load including the header */
+		spl_image.load_addr = spl_image.entry_point - header_size;
+		spl_image.os = header->ih_os;
+		spl_image.name = (const char *)&header->ih_name;
+		debug("spl: payload image: %s load addr: 0x%x size: %d\n",
+			spl_image.name, spl_image.load_addr, spl_image.size);
+	} else {
+		/* Signature not found - assume u-boot.bin */
+		printf("mkimage signature not found - ih_magic = %x\n",
+			header->ih_magic);
+		debug("Assuming u-boot.bin ..\n");
+		/* Let's assume U-Boot will not be more than 200 KB */
+		spl_image.size = 200 * 1024;
+		spl_image.entry_point = CONFIG_SYS_TEXT_BASE;
+		spl_image.load_addr = CONFIG_SYS_TEXT_BASE;
+		spl_image.os = IH_OS_U_BOOT;
+		spl_image.name = "U-Boot";
+	}
+}
+
+/*
+ * This function jumps to an image with argument. Normally an FDT or ATAGS
+ * image.
+ * arg: Pointer to paramter image in RAM
+ */
+#ifdef CONFIG_SPL_OS_BOOT
+static void __noreturn jump_to_image_linux(void *arg)
+{
+	debug("Entering kernel arg pointer: 0x%p\n", arg);
+	typedef void (*image_entry_arg_t)(int, int, void *)
+		__attribute__ ((noreturn));
+	image_entry_arg_t image_entry =
+		(image_entry_arg_t) spl_image.entry_point;
+	cleanup_before_linux();
+	image_entry(0, CONFIG_MACH_TYPE, arg);
+}
+#endif
+
+static void __noreturn jump_to_image_no_args(void)
+{
+	typedef void __noreturn (*image_entry_noargs_t)(u32 *);
+	image_entry_noargs_t image_entry =
+			(image_entry_noargs_t) spl_image.entry_point;
+
+	debug("image entry point: 0x%X\n", spl_image.entry_point);
+	/* Pass the saved boot_params from rom code */
+#if defined(CONFIG_VIRTIO) || defined(CONFIG_ZEBU)
+	image_entry = (image_entry_noargs_t)0x80100000;
+#endif
+	u32 boot_params_ptr_addr = (u32)&boot_params_ptr;
+	image_entry((u32 *)boot_params_ptr_addr);
+}
+
 void board_init_r(gd_t *id, ulong dest_addr)
 {
 	__attribute__((noreturn)) void (*uboot)(void);
 	struct mmc *mmc;
-	int err;
+	s32 err;
+	struct image_header *header;
+	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE -
+						sizeof(struct image_header));
 
 	gd = &gdata;
 	gd->bd = &bdata;
@@ -171,6 +234,30 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	puts("Loading U-Boot...   ");
 
+#if defined(CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME) && defined(CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION)
+	err = fat_register_device(&mmc->block_dev,
+				CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION);
+	if (err)
+		goto nofat;
+
+	err = file_fat_read(CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME,
+				(u8 *)header, sizeof(struct image_header));
+	if (err <= 0)
+		goto nofat;
+
+	spl_parse_image_header(header);
+
+	err = file_fat_read(CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME,
+				(u8 *)spl_image.load_addr, 0);
+
+	if (err <= 0) {
+		printf("spl: error reading image %s, err - %d\n",
+			CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME, err);
+		hang();
+	}
+
+nofat:
+#endif
 	err = mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
 			CONFIG_MMC_U_BOOT_SECTOR_START,
 			CONFIG_MMC_U_BOOT_SECTOR_COUNT,
