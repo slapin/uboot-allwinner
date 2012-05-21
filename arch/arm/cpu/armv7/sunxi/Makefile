@@ -38,6 +38,15 @@ COBJS	+= early_print.o
 endif
 
 ifndef CONFIG_SPL_BUILD
+COBJS	+= fastboot.o
+COBJS 	+= sparse.o
+COBJS	+= usb/usbc.o
+COBJS	+= usb/usbc_dev.o
+COBJS	+= usb/usbc_host.o
+COBJS	+= usb/usbc_phy.o
+endif
+
+ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
 COBJS	+= cpu_info.o
 endif
