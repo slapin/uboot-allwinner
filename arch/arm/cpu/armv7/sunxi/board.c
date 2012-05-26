@@ -167,8 +167,8 @@ void spl_parse_image_header(const struct image_header *header)
 		printf("mkimage signature not found - ih_magic = %x\n",
 			header->ih_magic);
 		debug("Assuming u-boot.bin ..\n");
-		/* Let's assume U-Boot will not be more than 200 KB */
-		spl_image.size = 200 * 1024;
+		/* Let's assume U-Boot will not be more than 512 KB */
+		spl_image.size = CONFIG_MMC_U_BOOT_SECTOR_COUNT * 512;
 		spl_image.entry_point = CONFIG_SYS_TEXT_BASE;
 		spl_image.load_addr = CONFIG_SYS_TEXT_BASE;
 		spl_image.os = IH_OS_U_BOOT;
@@ -209,6 +209,79 @@ static void __noreturn jump_to_image_no_args(void)
 	image_entry((u32 *)boot_params_ptr_addr);
 }
 
+#define MMCSD_SECTOR_SIZE 512
+
+static int mmc_load_image_raw(struct mmc *mmc)
+{
+	u32 image_size_sectors, err;
+	const struct image_header *header;
+
+	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE -
+						sizeof(struct image_header));
+
+	/* read image header to find the image size & load address */
+	err = mmc->block_dev.block_read(0,
+			CONFIG_MMC_U_BOOT_SECTOR_START, 1,
+			(void *)header);
+
+	if (err <= 0)
+		goto end;
+
+	spl_parse_image_header(header);
+
+	/* convert size to sectors - round up */
+	image_size_sectors = (spl_image.size + MMCSD_SECTOR_SIZE - 1) /
+				MMCSD_SECTOR_SIZE;
+
+	/* Read the header too to avoid extra memcpy */
+	err = mmc->block_dev.block_read(0,
+			CONFIG_MMC_U_BOOT_SECTOR_START,
+			image_size_sectors, (void *)spl_image.load_addr);
+
+end:
+	if (err <= 0) {
+		printf("spl: mmc blk read err - %d\n", err);
+		return err;
+	}
+	return 0;
+}
+
+#if defined(CONFIG_SPL_FAT_SUPPORT)
+static int mmc_load_image_fat(struct mmc *mmc)
+{
+	s32 err;
+	struct image_header *header;
+
+	header = (struct image_header *)(CONFIG_SYS_TEXT_BASE -
+						sizeof(struct image_header));
+
+	err = fat_register_device(&mmc->block_dev,
+				CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION);
+	if (err) {
+		printf("spl: fat register err - %d\n", err);
+		hang();
+	}
+
+	err = file_fat_read(CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME,
+				(u8 *)header, sizeof(struct image_header));
+	if (err <= 0)
+		goto end;
+
+	spl_parse_image_header(header);
+
+	err = file_fat_read(CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME,
+				(u8 *)spl_image.load_addr, 0);
+
+end:
+	if (err <= 0) {
+		printf("spl: error reading image %s, err - %d\n",
+			CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME, err);
+		return err;
+	}
+	return 0;
+}
+#endif
+
 void board_init_r(gd_t *id, ulong dest_addr)
 {
 	__attribute__((noreturn)) void (*uboot)(void);
@@ -246,45 +319,37 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	puts("Loading U-Boot...   ");
 
-#if defined(CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME) && defined(CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION)
-	err = fat_register_device(&mmc->block_dev,
-				CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION);
-	if (err)
-		goto nofat;
-
-	err = file_fat_read(CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME,
-				(u8 *)header, sizeof(struct image_header));
-	if (err <= 0)
-		goto nofat;
-
-	spl_parse_image_header(header);
-
-	err = file_fat_read(CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME,
-				(u8 *)spl_image.load_addr, 0);
-
-	if (err <= 0) {
-		printf("spl: error reading image %s, err - %d\n",
-			CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME, err);
-		hang();
-	}
-
-nofat:
+#if defined(CONFIG_SPL_FAT_SUPPORT)
+	err = mmc_load_image_fat(mmc);
+	if (err < 0)
 #endif
-	err = mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
-			CONFIG_MMC_U_BOOT_SECTOR_START,
-			CONFIG_MMC_U_BOOT_SECTOR_COUNT,
-			(uchar *)CONFIG_SYS_TEXT_BASE);
-
-	if(err == CONFIG_MMC_U_BOOT_SECTOR_COUNT) {
-		puts("OK!\n");
-	} else {
+#if defined(CONFIG_MMC_U_BOOT_SECTOR_START)
+		err = mmc_load_image_raw(mmc);
+	if (err < 0)
+#endif
+	{
+		printf("Failed to load u-boot: err - %d\n", err);
 		hang();
 	}
 
 	puts("Jumping to U-Boot...\n");
 	/* Jump to U-Boot image */
-	uboot = (void *)CONFIG_SYS_TEXT_BASE;
-	(*uboot)();
+	switch (spl_image.os) {
+	case IH_OS_U_BOOT:
+		debug("Jumping to U-Boot\n");
+		jump_to_image_no_args();
+		break;
+#ifdef CONFIG_SPL_OS_BOOT
+	case IH_OS_LINUX:
+		debug("Jumping to Linux\n");
+		spl_board_prepare_for_linux();
+		jump_to_image_linux((void *)CONFIG_SYS_SPL_ARGS_ADDR);
+		break;
+#endif
+	default:
+		puts("Unsupported OS image.. Jumping nevertheless..\n");
+		jump_to_image_no_args();
+	}
 	/* Never returns Here */
 }
 #endif
