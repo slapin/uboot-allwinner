@@ -24,6 +24,7 @@
  * MA 02111-1307 USA
  */
 
+#include <linux/compiler.h>
 #include <common.h>
 #include <asm/io.h>
 #include <serial.h>
@@ -136,6 +137,17 @@ void board_init_f(unsigned long bootflag)
 	 */
 	relocate_code(CONFIG_SPL_STACK, &gdata, CONFIG_SPL_TEXT_BASE);
 }
+
+struct spl_image_info {
+	const char *name;
+	u8 os;
+	u32 load_addr;
+	u32 entry_point;
+	u32 size;
+};
+
+struct spl_image_info spl_image;
+u32* boot_params_ptr = NULL;
 
 void spl_parse_image_header(const struct image_header *header)
 {
