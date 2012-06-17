@@ -27,6 +27,7 @@
 #include <asm/byteorder.h>
 #include <jffs2/jffs2.h>
 #include <nand.h>
+#include <asm/arch/nand_bsp.h>
 
 #if defined(CONFIG_CMD_MTDPARTS)
 
@@ -619,7 +620,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		    !strcmp(s, ".e") || !strcmp(s, ".i")) {
 			if (read) {
 				ret = sunxi_nand_read_opts(nand, off, &rwsize,
-							 (u_char *)addr);
+							 (u_char *)addr, 0);
 			}
 			else {
 				ret = sunxi_nand_write_opts(nand, off, &rwsize,
