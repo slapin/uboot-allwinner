@@ -626,6 +626,15 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 				ret = sunxi_nand_write_opts(nand, off, &rwsize,
 							  (u_char *)addr, 0);
 			}
+		} else if (!strcmp(s, ".raw")) {
+			if (read) {
+				ret = sunxi_nand_read_opts(nand, off, &rwsize,
+							 (u_char *)addr, 1);
+			}
+			else {
+				ret = sunxi_nand_write_opts(nand, off, &rwsize,
+							  (u_char *)addr, 1);
+			}
 #ifdef CONFIG_CMD_NAND_TRIMFFS
 		} else if (!strcmp(s, ".trimffs")) {
 			if (read) {

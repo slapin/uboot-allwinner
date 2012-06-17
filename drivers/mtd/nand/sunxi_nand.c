@@ -27,10 +27,51 @@
 #include <asm/arch/nand_bsp.h>
 #include <nand.h>
 
-int board_nand_init(struct nand_chip *nand) {
+extern int NAND_PhyRead (struct boot_physical_param *readop);
+extern int NAND_PhyWrite (struct boot_physical_param *readop);
 
+int board_nand_init(struct nand_chip *nand) {
+	boot_flash_info_t info;
 	NAND_Init();
+	NAND_GetFlashInfo(&info);
+	
+	printf("sunxi nand:\n");
+	printf("	chip_cnt = %u\n", info.chip_cnt);
+	printf("	blk_cnt_per_chip = %u\n", info.blk_cnt_per_chip);
+	printf("	blocksize = %u\n", info.blocksize * 512);
+	printf("	pagesize = %u\n", info.pagesize * 512);
+	printf("	pagewithbadflag = %u\n", info.pagewithbadflag);
+
 	return 1;
+}
+
+static int sunxi_nand_phy_op(unsigned int nSectNum, unsigned int nSectorCnt, u_char *buffer, int (*op)(struct boot_physical_param *))
+{
+	struct boot_physical_param param;
+	boot_flash_info_t info;
+	unsigned int nSectorEnd = nSectNum + nSectorCnt;
+
+	NAND_GetFlashInfo(&info);
+	if ((nSectNum % info.blocksize % info.pagesize) || (nSectorCnt % info.pagesize)) {
+		printf("ERROR: Unaligned NAND access\n");
+		return -1;
+	}
+
+	while (nSectNum < nSectorEnd) {
+		param.chip = 0; //chip no
+		param.block = nSectNum / info.blocksize; // block no within chip
+		param.page = nSectNum % info.blocksize / info.pagesize; // apge no within block
+		param.sectorbitmap = 0; //done't care
+		param.mainbuf = buffer; //data buf
+		param.oobbuf = NULL; //oob buf
+
+		printf("block = %d, page = %d\n", param.block, param.page);
+		op(&param);
+		buffer += info.pagesize * 512;
+		nSectNum += info.pagesize;
+	}
+
+	return 0;
 }
 
 int sunxi_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length,
@@ -43,7 +84,11 @@ int sunxi_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length,
 #ifdef DEBUG
 	printf("sunxi nand read: start sector %x counts %x\n", nSectNum, nSectorCnt);
 #endif
-	return NAND_LogicRead(nSectNum, nSectorCnt, buffer);
+	if (flags) {
+		return sunxi_nand_phy_op(nSectNum, nSectorCnt, buffer, NAND_PhyRead);
+	} else {
+		return NAND_LogicRead(nSectNum, nSectorCnt, buffer);
+	}
 }
 
 int sunxi_nand_write_opts(nand_info_t *nand, loff_t offset, size_t *length,
@@ -56,7 +101,11 @@ int sunxi_nand_write_opts(nand_info_t *nand, loff_t offset, size_t *length,
 #ifdef DEBUG
 	printf("sunxi nand write: start sector %x counts %x\n", nSectNum, nSectorCnt);
 #endif
-	return NAND_LogicWrite(nSectNum, nSectorCnt, buffer);
+	if (flags) {
+		return sunxi_nand_phy_op(nSectNum, nSectorCnt, buffer, NAND_PhyWrite);
+	} else {
+		return NAND_LogicWrite(nSectNum, nSectorCnt, buffer);
+	}
 }
 
 int sunxi_nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts) {

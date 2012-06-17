@@ -185,7 +185,7 @@
 	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
 	"boot_fastboot=fastboot\0"
 
-#define CONFIG_BOOTDELAY	1
+#define CONFIG_BOOTDELAY	3
 #define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;boota 50000000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
@@ -195,6 +195,6 @@
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
 
-#define UART_PINS_TO_SD
+/* #define UART_PINS_TO_SD */
 
 #endif /* __CONFIG_H */
