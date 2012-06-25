@@ -569,7 +569,7 @@ static int mxc_nand_write_oob_syndrome(struct mtd_info *mtd,
 	return status & NAND_STATUS_FAIL ? -EIO : 0;
 }
 
-static void mxc_nand_write_page_raw_syndrome(struct mtd_info *mtd,
+static int mxc_nand_write_page_raw_syndrome(struct mtd_info *mtd,
 					     struct nand_chip *chip,
 					     const uint8_t *buf,
 					     int oob_required)
@@ -606,9 +606,10 @@ static void mxc_nand_write_page_raw_syndrome(struct mtd_info *mtd,
 	size = mtd->oobsize - (oob - chip->oob_poi);
 	if (size)
 		chip->write_buf(mtd, oob, size);
+	return 0;
 }
 
-static void mxc_nand_write_page_syndrome(struct mtd_info *mtd,
+static int mxc_nand_write_page_syndrome(struct mtd_info *mtd,
 					 struct nand_chip *chip,
 					 const uint8_t *buf,
 					 int oob_required)
@@ -650,6 +651,7 @@ static void mxc_nand_write_page_syndrome(struct mtd_info *mtd,
 	i = mtd->oobsize - (oob - chip->oob_poi);
 	if (i)
 		chip->write_buf(mtd, oob, i);
+	return 0;
 }
 
 static int mxc_nand_correct_data(struct mtd_info *mtd, u_char *dat,

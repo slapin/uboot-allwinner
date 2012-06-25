@@ -692,7 +692,7 @@ rtn:
 /*
  * Write a page to NAND.
  */
-static void mxs_nand_ecc_write_page(struct mtd_info *mtd,
+static int mxs_nand_ecc_write_page(struct mtd_info *mtd,
 				struct nand_chip *nand, const uint8_t *buf,
 				int oob_required)
 {
@@ -750,6 +750,7 @@ static void mxs_nand_ecc_write_page(struct mtd_info *mtd,
 
 rtn:
 	mxs_nand_return_dma_descs(nand_info);
+	return 0;
 }
 
 /*
