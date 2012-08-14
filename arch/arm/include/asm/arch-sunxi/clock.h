@@ -136,6 +136,8 @@ struct sunxi_ccm_reg {
 	u32 lvds_clk_cfg;         /* 0x14c */
 	u32 hdmi_clk_cfg;         /* 0x150 */
 	u32 mali_clk_cfg;         /* 0x154 */
+	u32 res7[0x8];
+	u32 mbus_clk_cfg;         /* 0x15c */
 };
 /* pll1 factors */
 #define PLL1_FACTOR_N			21
@@ -194,6 +196,7 @@ struct sunxi_ccm_reg {
 #define AHB_GATE_OFFSET_TS0			18
 #define AHB_GATE_OFFSET_EMAC		17
 #define AHB_GATE_OFFSET_ACE			16
+#define AHB_GATE_OFFSET_DLL		15
 #define AHB_GATE_OFFSET_SDRAM		14
 #define AHB_GATE_OFFSET_NAND		13
 #define AHB_GATE_OFFSET_MS			12

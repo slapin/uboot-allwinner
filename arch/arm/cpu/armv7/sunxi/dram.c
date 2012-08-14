@@ -31,19 +31,9 @@
 #include <asm/arch/sys_proto.h>
 
 static inline void dram_ddr_reset(struct sunxi_dram_reg *dram) {
-
-
-	/* different cpu revision in bit [7:6] */
-	if(readl(SUNXI_CPU_CFG)) {
-		sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_HIGH);
-		sdelay(0x100);
-		sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_LOW);
-	} else {
-		sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_LOW);
-		sdelay(0x100);
-		sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_HIGH);
-	}
-
+	sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_LOW);
+	sdelay(0x100);
+	sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_HIGH);
 }
 
 static inline void dram_set_high_speed(struct sunxi_dram_reg *dram) {
@@ -179,15 +169,14 @@ static inline void dram_config_hostport(struct sunxi_dram_reg *dram) {
 
 	int i;
 	u32 val_tbl[32] = {
-
-		0x00000301,0x00000301,0x00000301,0x00000301,
-		0x00000301,0x00000301,0x0,       0x0,
-		0x0,       0x0,       0x0,       0x0,
-		0x0,       0x0,       0x0,       0x0,
+		0x0,0x0,0x0,0x0,		
+		0x0,0x0,0x0,0x0,
+		0x0,0x0,0x0,0x0,
+		0x0,0x0,0x0,0x0,
 		0x00001031,0x00001031,0x00000735,0x00001035,
-		0x00001035,0x00000731,0x00001031,0x00000735,
-		0x00001035,0x00001031,0x00000731,0x00001035,
-		0x00001031,0x00000301,0x00000301,0x00000731,
+		0x00001035,0x00000731,0x00001031,0x0,
+		0x00000301,0x00000301,0x00000301,0x00000301,
+		0x00000301,0x00000301,0x00000301,0x0		
 	};
 
 	for(i = 0; i < 32; i++)

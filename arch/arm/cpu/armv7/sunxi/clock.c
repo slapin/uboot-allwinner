@@ -87,18 +87,18 @@ int clock_init(void) {
 	sdelay(0x100000);
 	sr32(&ccm->pll5_cfg, 29, 1, DDR_CLK_OUT_ENABLE);
 
-	/* if we don't reset the gps module, it will access sdram
-	 * but sdram is not ready, and the system will die...
-	 */
-	sr32(&ccm->gps_clk_cfg, 0, 1, GPS_SCLK_GATING_OFF);
-	sr32(&ccm->gps_clk_cfg, 1, 1, GPS_RESET);
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_GPS, 1, CLK_GATE_OPEN);
-	sdelay(0x100);
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_GPS, 1, CLK_GATE_CLOSE);
 
+	/* setup MBUS clock */
++    reg_val &= (0x1<<31)|(0x2<<24)|(0x1);      
++    mctl_write_w(DRAM_CCM_MUS_CLK_REG, reg_val);
+	
+	/* open DRAMC AHB & DLL register clock */
+	/* close it first */
 	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_SDRAM, 1, CLK_GATE_CLOSE);
+	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_DLL, 1, CLK_GATE_CLOSE);
 	sdelay(0x1000);
 	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_SDRAM, 1, CLK_GATE_OPEN);
+	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_DLL, 1, CLK_GATE_OPEN);
 	sdelay(0x1000);
 #endif
 
