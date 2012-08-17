@@ -81,12 +81,21 @@ int watchdog_init(void) {
 	return 0;
 }
 
-int gpio_init(void) {
+#define UART0_PINS_TO_SD 1
 
-	/* config uart pin */
+int gpio_init(void) {
+#ifdef UART0_PINS_TO_SD
+	/* disable GPB22,23 as uart0 tx,rx */
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPIO_INPUT);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPIO_INPUT);
+	/* set GPF2,4 as uart0 tx,rx */
+	sunxi_gpio_set_cfgpin(SUNXI_GPF(2), SUNXI_GPF2_UART0_TX);
+	sunxi_gpio_set_cfgpin(SUNXI_GPF(4), SUNXI_GPF4_UART0_RX);
+#else
+	/* config uart0 pin */
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPB22_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPB23_UART0_RX);
-
+#endif
 	return 0;
 }
 
