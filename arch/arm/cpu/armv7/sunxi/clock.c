@@ -87,10 +87,8 @@ int clock_init(void) {
 	sdelay(0x100000);
 	sr32(&ccm->pll5_cfg, 29, 1, DDR_CLK_OUT_ENABLE);
 
-
 	/* setup MBUS clock */
-+    reg_val &= (0x1<<31)|(0x2<<24)|(0x1);      
-+    mctl_write_w(DRAM_CCM_MUS_CLK_REG, reg_val);
+	writel((0x1<<31) | (0x2<<24) | (0x1 << 0), &ccm->mbus_clk_cfg);
 	
 	/* open DRAMC AHB & DLL register clock */
 	/* close it first */
