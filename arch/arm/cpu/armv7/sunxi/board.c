@@ -81,7 +81,7 @@ int watchdog_init(void) {
 	return 0;
 }
 
-#define UART0_PINS_TO_SD 1
+#define UART0_PINS_TO_SD 0
 
 int gpio_init(void) {
 #ifdef UART0_PINS_TO_SD
@@ -96,6 +96,10 @@ int gpio_init(void) {
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPB22_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPB23_UART0_RX);
 #endif
+	/* config uart1 pin */
+	sunxi_gpio_set_cfgpin(SUNXI_GPG(3), 4);
+	sunxi_gpio_set_cfgpin(SUNXI_GPG(4), 4);
+
 	return 0;
 }
 

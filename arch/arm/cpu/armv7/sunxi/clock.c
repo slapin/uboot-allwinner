@@ -72,8 +72,11 @@ int clock_init(void) {
 	sr32(&ccm->apb1_clk_div_cfg, 24, 2, APB1_CLK_SRC_OSC24M);
 	sr32(&ccm->apb1_clk_div_cfg, 16, 2, APB1_FACTOR_N);
 	sr32(&ccm->apb1_clk_div_cfg, 0, 5, APB1_FACTOR_M);
+
 	/* open the clock for uart0 */
 	sr32(&ccm->apb1_gate, 16, 1, CLK_GATE_OPEN);
+	/* open the clock for uart1 */
+	sr32(&ccm->apb1_gate, 17, 1, CLK_GATE_OPEN);
 
 
 #ifdef CONFIG_SPL_BUILD

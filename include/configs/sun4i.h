@@ -58,7 +58,7 @@
 #define CONFIG_SYS_NS16550_COM3		SUNXI_UART2_BASE
 #define CONFIG_SYS_NS16550_COM4		SUNXI_UART3_BASE
 
-#define CONFIG_CONS_INDEX			1			/* which serial channel for console */
+#define CONFIG_CONS_INDEX			2			/* which serial channel for console */
 
 /* DRAM Base */
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
