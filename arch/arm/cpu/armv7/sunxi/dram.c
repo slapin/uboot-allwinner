@@ -126,9 +126,9 @@ static inline void dram_set_self_refresh(struct sunxi_dram_reg *dram) {
 
 static inline void dram_set_timing(struct sunxi_dram_reg *dram) {
 
-	writel(0x30926692, &dram->tpr0);
-	writel(0x1090, &dram->tpr1);
-	writel(0x1a0c8, &dram->tpr2);
+	writel(0x42d899b7, &dram->tpr0);
+	writel(0xa090, &dram->tpr1);
+	writel(0x22a00, &dram->tpr2);
 }
 
 static inline void dram_set_mode(struct sunxi_dram_reg *dram) {
@@ -142,7 +142,7 @@ static inline void dram_set_mode(struct sunxi_dram_reg *dram) {
 static inline void dram_set_emr(struct sunxi_dram_reg *dram) {
 
 	writel(0, &dram->emr);
-	writel(0, &dram->emr2);
+	writel(0x10, &dram->emr2);
 	writel(0, &dram->emr3);
 }
 
@@ -195,7 +195,7 @@ int sunxi_dram_init(void) {
 
 	dram_close_clock(ccm);
 
-	dram_select_controller(dram);
+	//dram_select_controller(dram);
 	dram_disable_itm(dram);
 	dram_enable_dll(dram, 0);
 	dram_config_type(dram);

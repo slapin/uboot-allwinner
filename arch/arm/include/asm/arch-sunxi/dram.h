@@ -148,8 +148,8 @@ struct dram_para {
 #define ZQCR0_IMP_DIV             (0x7b)
 
 #define MR_BURST_LENGTH           (0)
-#define MR_POWER_DOWN             (1)
-#define MR_CAS_LATENCY            (2)
+#define MR_POWER_DOWN             (0)
+#define MR_CAS_LATENCY            (9-4)
 #define MR_WRITE_RECOVERY         (5)
 
 #define DQS_GATE_ON               (1)
