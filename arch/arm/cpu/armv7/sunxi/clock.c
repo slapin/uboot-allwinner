@@ -54,7 +54,7 @@ int clock_init(void) {
 	sr32(&ccm->cpu_ahb_apb0_cfg, 6, 2, AHB_CLK_SRC_AXI);/* AHB_CLK_SRC [7:6] */
 #endif
 	sr32(&ccm->cpu_ahb_apb0_cfg, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */
-	sr32(&ccm->cpu_ahb_apb0_cfg, 9, 2, APB0_DIV);	/* APB0_CLK_DIV_RATIO [9:8] */
+	sr32(&ccm->cpu_ahb_apb0_cfg, 8, 2, APB0_DIV);	/* APB0_CLK_DIV_RATIO [9:8] */
 
 	/* enable pll1 */
 	sr32(&ccm->pll1_cfg, 31, 1, PLL1_ENABLE);		/* PLL1_ENABLE [31] */
