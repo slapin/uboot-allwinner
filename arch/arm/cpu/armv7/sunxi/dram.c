@@ -57,12 +57,6 @@ static inline void dram_open_clock(struct sunxi_ccm_reg *ccm) {
 	sr32(&ccm->dram_clk_cfg, DCLK_OUT_OFFSET, 1, CLK_GATE_OPEN);
 }
 
-static inline void dram_select_controller(struct sunxi_dram_reg *dram) {
-
-	/* write magic number to select dram controller */
-	writel(DRAM_CTRL_SELECT_MAGIC, &dram->csel);
-}
-
 static inline void dram_disable_itm(struct sunxi_dram_reg *dram) {
 
 	/* disable interface timing module */
@@ -195,7 +189,6 @@ int sunxi_dram_init(void) {
 
 	dram_close_clock(ccm);
 
-	//dram_select_controller(dram);
 	dram_disable_itm(dram);
 	dram_enable_dll(dram, 0);
 	dram_config_type(dram);

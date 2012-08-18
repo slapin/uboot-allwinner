@@ -109,7 +109,6 @@ struct dram_para {
 #define SDRAM_RST_PIN_LOW         (0)
 
 #define DCLK_OUT_OFFSET           (16)
-#define DRAM_CTRL_SELECT_MAGIC    (0x16237495)
 
 #define MCR_ENABLE_MODE           (3)
 #define MCR_MODE_NORMAL           (0)
