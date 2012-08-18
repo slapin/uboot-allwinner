@@ -153,7 +153,7 @@ struct sunxi_ccm_reg {
 #define APB1_FACTOR_N			0
 
 /* pll5(for ddr) bit field */
-#define DDR_CLK_HZ				(360 * 1024 * 1024)
+#define DDR_CLK_HZ				(408 * 1024 * 1024)
 #define OSC24M_CLK_HZ			(24 * 1024 * 1024)
 
 #define PLL5_FACTOR_N			(DDR_CLK_HZ / OSC24M_CLK_HZ)
