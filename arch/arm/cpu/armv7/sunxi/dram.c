@@ -30,6 +30,9 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 
+#define inline
+#define static
+
 static inline void dram_ddr_reset(struct sunxi_dram_reg *dram) {
 	sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_LOW);
 	sdelay(0x100);
@@ -86,8 +89,8 @@ static inline void dram_config_type(struct sunxi_dram_reg *dram) {
 
 	sr32(&dram->dcr, 0, 1, DCR_TYPE_DDR3);
 	sr32(&dram->dcr, 1, 2, DCR_IO_WIDTH_16);
-	sr32(&dram->dcr, 3, 3, DCR_CHIP_DENSITY_2Gb);
-	sr32(&dram->dcr, 6, 3, DCR_BUS_WIDTH_32);
+	sr32(&dram->dcr, 3, 3, DCR_CHIP_DENSITY_4Gb);
+	sr32(&dram->dcr, 6, 3, DCR_BUS_WIDTH_16);
 	sr32(&dram->dcr, 10, 2, DCR_ONE_RANK);
 	sr32(&dram->dcr, 12, 1, DCR_CMD_ON_ALL_RANKS);
 	sr32(&dram->dcr, 13, 2, DCR_INTERLEAVE_MODE);
