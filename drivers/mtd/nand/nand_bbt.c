@@ -398,7 +398,7 @@ static void read_abs_bbts(struct mtd_info *mtd, uint8_t *buf,
 /* Scan a given block full */
 static int scan_block_full(struct mtd_info *mtd, struct nand_bbt_descr *bd,
 			   loff_t offs, uint8_t *buf, size_t readlen,
-			   int scanlen, int len)
+			   int scanlen, int numpages)
 {
 	int ret, j;
 
@@ -407,7 +407,7 @@ static int scan_block_full(struct mtd_info *mtd, struct nand_bbt_descr *bd,
 	if (ret && !mtd_is_bitflip_or_eccerr(ret))
 		return ret;
 
-	for (j = 0; j < len; j++, buf += scanlen) {
+	for (j = 0; j < numpages; j++, buf += scanlen) {
 		if (check_pattern(buf, scanlen, mtd->writesize, bd))
 			return 1;
 	}
@@ -416,7 +416,7 @@ static int scan_block_full(struct mtd_info *mtd, struct nand_bbt_descr *bd,
 
 /* Scan a given block partially */
 static int scan_block_fast(struct mtd_info *mtd, struct nand_bbt_descr *bd,
-			   loff_t offs, uint8_t *buf, int len)
+			   loff_t offs, uint8_t *buf, int numpages)
 {
 	struct mtd_oob_ops ops;
 	int j, ret;
@@ -427,7 +427,7 @@ static int scan_block_fast(struct mtd_info *mtd, struct nand_bbt_descr *bd,
 	ops.datbuf = NULL;
 	ops.mode = MTD_OPS_PLACE_OOB;
 
-	for (j = 0; j < len; j++) {
+	for (j = 0; j < numpages; j++) {
 		/*
 		 * Read the full oob until read_oob is fixed to handle single
 		 * byte reads for 16 bit buswidth.
@@ -460,7 +460,7 @@ static int create_bbt(struct mtd_info *mtd, uint8_t *buf,
 	struct nand_bbt_descr *bd, int chip)
 {
 	struct nand_chip *this = mtd->priv;
-	int i, numblocks, len, scanlen;
+	int i, numblocks, numpages, scanlen;
 	int startblock;
 	loff_t from;
 	size_t readlen;
@@ -468,11 +468,11 @@ static int create_bbt(struct mtd_info *mtd, uint8_t *buf,
 	pr_info("Scanning device for bad blocks\n");
 
 	if (bd->options & NAND_BBT_SCANALLPAGES)
-		len = 1 << (this->bbt_erase_shift - this->page_shift);
+		numpages = 1 << (this->bbt_erase_shift - this->page_shift);
 	else if (bd->options & NAND_BBT_SCAN2NDPAGE)
-		len = 2;
+		numpages = 2;
 	else
-		len = 1;
+		numpages = 1;
 
 	if (!(bd->options & NAND_BBT_SCANEMPTY)) {
 		/* We need only read few bytes from the OOB area */
@@ -481,7 +481,7 @@ static int create_bbt(struct mtd_info *mtd, uint8_t *buf,
 	} else {
 		/* Full page content should be read */
 		scanlen = mtd->writesize + mtd->oobsize;
-		readlen = len * mtd->writesize;
+		readlen = numpages * mtd->writesize;
 	}
 
 	if (chip == -1) {
@@ -505,7 +505,7 @@ static int create_bbt(struct mtd_info *mtd, uint8_t *buf,
 	}
 
 	if (this->bbt_options & NAND_BBT_SCANLASTPAGE)
-		from += mtd->erasesize - (mtd->writesize * len);
+		from += mtd->erasesize - (mtd->writesize * numpages);
 
 	for (i = startblock; i < numblocks;) {
 		int ret;
@@ -514,9 +514,9 @@ static int create_bbt(struct mtd_info *mtd, uint8_t *buf,
 
 		if (bd->options & NAND_BBT_SCANALLPAGES)
 			ret = scan_block_full(mtd, bd, from, buf, readlen,
-					      scanlen, len);
+					      scanlen, numpages);
 		else
-			ret = scan_block_fast(mtd, bd, from, buf, len);
+			ret = scan_block_fast(mtd, bd, from, buf, numpages);
 
 		if (ret < 0)
 			return ret;
