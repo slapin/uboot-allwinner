@@ -171,16 +171,17 @@
 /*
  * Save the env in NAND
  */
-#if 0
+
 #define CONFIG_ENV_IS_IN_NAND_SUNXI	    			/* we store env in one partition of our nand */
 #define CONFIG_SUNXI_ENV_PARTITION	"env"			/* the partition name */
-#endif
+
 /*
  * Save the env on the MMC
  */
+#if 0
 #define CONFIG_ENV_IS_IN_MMC					/* we store env on the MMC */
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT	/* env in which mmc */
-
+#endif
 /*-----------------------------------------------------------------------
  * Environment default settings
  */
