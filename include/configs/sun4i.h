@@ -171,22 +171,23 @@
 /*
  * Save the env in NAND
  */
-#if 0
+
 #define CONFIG_ENV_IS_IN_NAND_SUNXI	    			/* we store env in one partition of our nand */
 #define CONFIG_SUNXI_ENV_PARTITION	"env"			/* the partition name */
-#endif
+
 /*
  * Save the env on the MMC
  */
+#if 0
 #define CONFIG_ENV_IS_IN_MMC					/* we store env on the MMC */
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT	/* env in which mmc */
-
+#endif
 /*-----------------------------------------------------------------------
  * Environment default settings
  */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"boot_fastboot=fastboot\0" \
-	"boot_initrd=if ext2load mmc 0 0x44000000 ${kernel}; ext2load mmc 0 0x45000000 ${initrd}; then bootm 0x44000000 0x45000000; fi\0" \
+	"boot_initrd=fatload nand 0 0x44000000 linux/${kernel}; fatload nand 0 0x45000000 linux/${initrd}; bootm 0x44000000 0x45000000\0" \
 	"boot_mmc=fatload mmc 0 0x48000000 ${kernel} || ext2load mmc 0 0x48000000 ${kernel}; bootm 0x48000000\0" \
 	"boot_normal=nand read 40007800 boot;boota 40007800\0" \
 	"boot_recovery=nand read 40007800 recovery;boota 40007800\0" \
@@ -196,30 +197,29 @@
 	"bootcmd_initrd=run shell_load; run reset_load; run set_modules; run set_root_dev; run set_bootargs; run load_hw; run boot_initrd\0" \
 	"bootcmd_mmc=run setargs; run load_fathw; run boot_mmc\0" \
 	"bootcmd_nand=run set_nand; if test ${root_dev} = ${nand_root}; then run setargs; run boot_normal; fi\0" \
+        "bootcmd_nand_env=run setargs_nand; run boot_normal\0" \
 	"bootcmd_scr=run bootcmd_bootscr; run bootcmd_env; run bootcmd_uenv\0" \
 	"bootcmd_shell=run set_modules; run setargs_shell; run load_hw; run boot_initrd\0" \
 	"bootcmd_uenv=if test -n ${uenvcmd}; then echo Running uenvcmd ...; run uenvcmd; fi\0" \
-	"bootconf=conf.d/uboot.conf\0" \
+	"bootconf=linux/conf.d/uboot.conf\0" \
 	"bootdelay=3\0" \
-	"bootenv=uEnv.txt\0" \
-	"bootscr=boot.scr\0" \
+	"bootenv=linux/uEnv.txt\0" \
+	"bootscr=linux/boot.scr\0" \
 	"console=ttyS0,115200\0" \
 	"device=tablet\0" \
-	"env_reset=conf.d/env_reset\0" \
+	"env_reset=linux/conf.d/env_reset\0" \
 	"ethaddr=""\0" \
-	"hw_conf=conf.d/script.bin\0" \
+	"hw_conf=linux/conf.d/script.bin\0" \
 	"ifup_auto=ip=dhcp\0" \
 	"init=/init\0" \
 	"initrd=uInitrd\0" \
 	"kernel=uImage\0" \
-	"load_bootconf=if ext2load mmc 0 ${scriptaddr} ${bootconf}; then env import -t ${scriptaddr} ${filesize}; fi\0" \
-	"load_env=fatload mmc 0 ${scriptaddr} ${bootenv} || ext2load mmc 0 ${scriptaddr} ${bootenv}" \
-	" || ext2load mmc 0 ${scriptaddr} boot/${bootenv}\0" \
+	"load_bootconf=if fatload nand 0 ${scriptaddr} ${bootconf}; then env import -t ${scriptaddr} ${filesize}; fi\0" \
+	"load_env=fatload nand 0 ${scriptaddr} ${bootenv}\0" \
 	"load_fathw=fatload mmc 0 0x43000000 script.bin || ext2load mmc 0 0x43000000 script.bin" \
 	" || ext2load mmc 0 43000000 ${hw_conf}\0" \
-	"load_hw=ext2load mmc 0 43000000 ${hw_conf}\0" \
-	"load_scr=fatload mmc 0 ${scriptaddr} ${bootscr} || ext2load mmc 0 ${scriptaddr} ${bootscr}" \
-	" || ext2load mmc 0 ${scriptaddr} boot/${bootscr}\0" \
+	"load_hw=fatload mmc 0 43000000 ${hw_conf}\0" \
+	"load_scr=fatload mmc 0 ${scriptaddr} ${bootscr}\0" \
 	"loglevel=8\0" \
 	"mac=""\0" \
 	"mmc_root=/dev/mmcblk0p2\0" \
@@ -230,16 +230,16 @@
 	"net_root=""\0" \
 	"panicarg=panic=10\0" \
 	"params=\0" \
-	"rescue=conf.d/rescue_shell\0" \
+	"rescue=linux/conf.d/rescue_shell\0" \
 	"rescue_shell=0\0" \
 	"reset_env=run load_bootconf; setenv reset_flag 0; saveenv\0" \
 	"reset_flag=0\0" \
-	"reset_load=if ext2load mmc 0 ${scriptaddr} ${env_reset}; then env import -t ${scriptaddr} ${filesize}; run reset_test; fi\0" \
+	"reset_load=if fatload mmc 0 ${scriptaddr} ${env_reset}; then env import -t ${scriptaddr} ${filesize}; run reset_test; fi\0" \
 	"reset_root=setenv root_dev ${root}; setenv root_flag 0\0" \
 	"reset_test=if test ${reset_flag} -eq 1; then run reset_env; fi\0" \
-	"root=/dev/mmcblk0p2\0" \
+	"root=/dev/nandd\0" \
 	"root_dev=${root}\0" \
-	"root_device=mmc\0" \
+	"root_device=nand\0" \
 	"root_flag=1\0" \
 	"rootfstype=ext4\0" \
 	"sata_root=""\0" \
@@ -248,7 +248,8 @@
 	" mac_addr=${mac} rd.driver.post=${modules} ${params} rootwait\0" \
 	"set_mmc=if test ${root_device} = mmc && test -n ${mmc_root}; then setenv root_dev ${mmc_root}; setenv root_flag 1; fi\0" \
 	"set_modules=if test ${device} = mele; then setenv modules ${modules_mele}; else setenv modules ${modules_tablet}; fi\0" \
-	"set_nand=if test ${root_device} = nand && test -n ${nand_root}; then setenv root_dev ${nand_root}; setenv root_flag 1; fi\0" \
+	"set_nand=if test ${root_device} = nand && test -n ${nand_root}; then setenv root_dev ${nand_root}; setenv root_flag 1;" \
+	" else setenv root_dev 0; fi\0" \
 	"set_net=if test ${root_device} = net && test -n ${net_root}; then setenv root_dev ${net_root}; setenv root_flag 1; fi\0" \
 	"set_root=run set_nand; run set_mmc; run set_usb; run set_sata; run set_net\0" \
 	"set_root_dev=run reset_root; run set_root; if test ${root_flag} -eq 0; then run reset_root; fi\0" \
@@ -260,7 +261,7 @@
 	"setargs_shell=setenv bootargs console=${console} root=${root_dev} loglevel=${loglevel}" \
 	" rd.driver.post=${modules} mac_addr=${ethaddr} ${ifup_auto} ${params} rd.break\0" \
 	"shell_flag=0\0" \
-	"shell_load=if ext2load mmc 0 ${scriptaddr} ${rescue}; then env import -t ${scriptaddr} ${filesize}; run shell_test; fi\0" \
+	"shell_load=if fatload mmc 0 ${scriptaddr} ${rescue}; then env import -t ${scriptaddr} ${filesize}; run shell_test; fi\0" \
 	"shell_test=if test ${shell_flag} -eq 1; then setenv shell_flag 0; saveenv; run bootcmd_shell; fi\0" \
 	"usb_root=""\0" \
 
