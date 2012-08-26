@@ -24,7 +24,7 @@
 VERSION = 2011
 PATCHLEVEL = 09
 SUBLEVEL =
-EXTRAVERSION = -rc1
+EXTRAVERSION =
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -158,7 +158,7 @@ export	ARCH CPU BOARD VENDOR SOC
 
 # set default to nothing for native builds
 ifeq ($(HOSTARCH),$(ARCH))
-CROSS_COMPILE ?= arm-none-linux-gnueabi-
+CROSS_COMPILE ?=
 endif
 
 # load other configuration
@@ -291,10 +291,6 @@ LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 ifeq ($(SOC),s5pc2xx)
 LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
-endif
-
-ifeq ($(SOC),sunxi)
-LIBS += nand_sunxi/libsunxi-nand.o
 endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))
@@ -950,7 +946,8 @@ clean:
 	       $(obj)tools/gdb/{astest,gdbcont,gdbsend}			  \
 	       $(obj)tools/gen_eth_addr    $(obj)tools/img2srec		  \
 	       $(obj)tools/mkimage	   $(obj)tools/mpc86x_clk	  \
-	       $(obj)tools/ncb		   $(obj)tools/ubsha1
+	       $(obj)tools/ncb		   $(obj)tools/ubsha1		  \
+	       $(obj)tools/mksunxiboot
 	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
 	       $(obj)board/matrix_vision/*/bootscript.img		  \
 	       $(obj)board/voiceblue/eeprom 				  \
@@ -967,6 +964,7 @@ clean:
 	@rm -f $(ONENAND_BIN)
 	@rm -f $(obj)onenand_ipl/u-boot.lds
 	@rm -f $(obj)spl/{u-boot-spl,u-boot-spl.bin,u-boot-spl.lds,u-boot-spl.map}
+	@rm -f $(obj)spl/sun4i-spl.bin
 	@rm -f $(TIMESTAMP_FILE) $(VERSION_FILE)
 	@find $(OBJTREE) -type f \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \

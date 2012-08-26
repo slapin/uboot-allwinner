@@ -4,6 +4,7 @@
 /img2srec
 /mkimage
 /mpc86x_clk
+/mksunxiboot
 /ncb
 /ncp
 /ubsha1
@@ -14,4 +15,3 @@
 /env/fw_printenv
 /gdb/gdbcont
 /gdb/gdbsend
-/sunxi_env_gen
