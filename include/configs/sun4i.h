@@ -218,6 +218,8 @@
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
 
+#define CONFIG_SYS_ICACHE_OFF
+
 #define LOW_LEVEL_SRAM_STACK		0x00006000				/* end of 24KB in sram */
 #define CONFIG_SPL_STACK         LOW_LEVEL_SRAM_STACK
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
