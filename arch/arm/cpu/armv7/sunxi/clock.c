@@ -31,6 +31,7 @@ int clock_init(void) {
 
 	struct sunxi_ccm_reg *ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+#if 0
 
 /* pll1
  *       \          2:1           2:1           2:1
@@ -68,16 +69,6 @@ int clock_init(void) {
 	 */
 	sdelay(10);
 
-	/* uart clock source is apb1 */
-	sr32(&ccm->apb1_clk_div_cfg, 24, 2, APB1_CLK_SRC_OSC24M);
-	sr32(&ccm->apb1_clk_div_cfg, 16, 2, APB1_FACTOR_N);
-	sr32(&ccm->apb1_clk_div_cfg, 0, 5, APB1_FACTOR_M);
-
-	/* open the clock for uart0 */
-	sr32(&ccm->apb1_gate, 16, 1, CLK_GATE_OPEN);
-	/* open the clock for uart1 */
-	sr32(&ccm->apb1_gate, 17, 1, CLK_GATE_OPEN);
-
 
 #ifdef CONFIG_SPL_BUILD
 	/* ddr clock source is pll5 */
@@ -111,6 +102,27 @@ int clock_init(void) {
 	sr32(&ccm->nand_sclk_cfg, 31, 1, CLK_GATE_OPEN);
 	/* open clock for nand */
 	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_NAND, 1, CLK_GATE_OPEN);
+#endif
+
+#else
+
+#ifdef CONFIG_SPL_BUILD
+	ccm->cpu_ahb_apb0_cfg = 0x00010010;
+	ccm->pll1_cfg = 0xa1005000;
+	sdelay(200);
+	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
+
+	/* uart clock source is apb1 */
+	sr32(&ccm->apb1_clk_div_cfg, 24, 2, APB1_CLK_SRC_OSC24M);
+	sr32(&ccm->apb1_clk_div_cfg, 16, 2, APB1_FACTOR_N);
+	sr32(&ccm->apb1_clk_div_cfg, 0, 5, APB1_FACTOR_M);
+
+	/* open the clock for uart0 */
+	sr32(&ccm->apb1_gate, 16, 1, CLK_GATE_OPEN);
+	/* open the clock for uart1 */
+	sr32(&ccm->apb1_gate, 17, 1, CLK_GATE_OPEN);
+#endif
+
 #endif
 
 	return 0;
