@@ -63,6 +63,7 @@
 #include <malloc.h>
 #include <linux/compat.h>
 #include <linux/mtd/mtd.h>
+#include <linux/mtd/bbm.h>
 #include <linux/mtd/nand.h>
 #include <linux/mtd/nand_ecc.h>
 #include <linux/bitops.h>
@@ -1252,7 +1253,7 @@ static struct nand_bbt_descr bbt_main_descr = {
 	.offs =	8,
 	.len = 4,
 	.veroffs = 12,
-	.maxblocks = 4,
+	.maxblocks = NAND_BBT_SCAN_MAXBLOCKS,
 	.pattern = bbt_pattern
 };
 
@@ -1262,7 +1263,7 @@ static struct nand_bbt_descr bbt_mirror_descr = {
 	.offs =	8,
 	.len = 4,
 	.veroffs = 12,
-	.maxblocks = 4,
+	.maxblocks = NAND_BBT_SCAN_MAXBLOCKS,
 	.pattern = mirror_pattern
 };
 
@@ -1272,7 +1273,7 @@ static struct nand_bbt_descr bbt_main_no_oob_descr = {
 		| NAND_BBT_NO_OOB,
 	.len = 4,
 	.veroffs = 4,
-	.maxblocks = 4,
+	.maxblocks = NAND_BBT_SCAN_MAXBLOCKS,
 	.pattern = bbt_pattern
 };
 
@@ -1282,7 +1283,7 @@ static struct nand_bbt_descr bbt_mirror_no_oob_descr = {
 		| NAND_BBT_NO_OOB,
 	.len = 4,
 	.veroffs = 4,
-	.maxblocks = 4,
+	.maxblocks = NAND_BBT_SCAN_MAXBLOCKS,
 	.pattern = mirror_pattern
 };
 
