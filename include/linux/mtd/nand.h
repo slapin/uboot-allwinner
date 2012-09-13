@@ -225,6 +225,15 @@ typedef enum {
 /* Keep gcc happy */
 struct nand_chip;
 
+/* ONFI timing mode, used in both asynchronous and synchronous mode */
+#define ONFI_TIMING_MODE_0		(1 << 0)
+#define ONFI_TIMING_MODE_1		(1 << 1)
+#define ONFI_TIMING_MODE_2		(1 << 2)
+#define ONFI_TIMING_MODE_3		(1 << 3)
+#define ONFI_TIMING_MODE_4		(1 << 4)
+#define ONFI_TIMING_MODE_5		(1 << 5)
+#define ONFI_TIMING_MODE_UNKNOWN	(1 << 6)
+
 /* ONFI feature address */
 #define ONFI_FEATURE_ADDR_TIMING_MODE	0x1
 
@@ -687,5 +696,24 @@ void nand_write_buf16(struct mtd_info *mtd, const uint8_t *buf, int len);
 void nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len);
 void nand_read_buf16(struct mtd_info *mtd, uint8_t *buf, int len);
 uint8_t nand_read_byte(struct mtd_info *mtd);
+
+/* return the supported asynchronous timing mode. */
+
+#ifdef CONFIG_SYS_NAND_ONFI_DETECTION
+static inline int onfi_get_async_timing_mode(struct nand_chip *chip)
+{
+	if (!chip->onfi_version)
+		return ONFI_TIMING_MODE_UNKNOWN;
+	return le16_to_cpu(chip->onfi_params.async_timing_mode);
+}
+
+/* return the supported synchronous timing mode. */
+static inline int onfi_get_sync_timing_mode(struct nand_chip *chip)
+{
+	if (!chip->onfi_version)
+		return ONFI_TIMING_MODE_UNKNOWN;
+	return le16_to_cpu(chip->onfi_params.src_sync_timing_mode);
+}
+#endif
 
 #endif /* __LINUX_MTD_NAND_H */
