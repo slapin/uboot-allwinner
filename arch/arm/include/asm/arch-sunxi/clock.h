@@ -186,6 +186,15 @@ struct sunxi_ccm_reg {
 #define GPS_SCLK_GATING_OFF		0
 #define GPS_RESET				0
 
+/* PLL1 bit offsets */
+#define PLL1_CFG_OFFSET_ENABLE		31
+#define PLL1_CFG_OFFSET_FACTOR_N	8
+#define PLL1_CFG_OFFSET_FACTOR_K	4
+#define PLL1_CFG_OFFSET_FACTOR_M	0
+#define PLL1_CFG_SIZE_ENABLE		1
+#define PLL1_CFG_SIZE_FACTOR_N		3
+#define PLL1_CFG_SIZE_FACTOR_M		2
+
 /* ahb clock gate bit offset */
 #define AHB_GATE_OFFSET_GPS			26
 #define AHB_GATE_OFFSET_SATA		25

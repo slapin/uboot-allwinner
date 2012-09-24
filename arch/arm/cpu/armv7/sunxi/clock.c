@@ -31,10 +31,18 @@ int clock_init(void) {
 
 	struct sunxi_ccm_reg *ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
-
-#ifdef CONFIG_SUN4I
+	
 
 #ifdef CONFIG_SPL_BUILD
+	/* Initial boot clock setting @608MHz */
+	ccm->cpu_ahb_apb0_cfg = 0x00010010;
+	ccm->pll1_cfg = 0xa1005000;
+	sdelay(200);
+	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
+
+#if 0
+/* Older clock configuration @1GHz. Not OK until we manage the PMU */
+
 /* pll1
  *       \          2:1           2:1           2:1
  *         cpu-clk ----> axi-clk ----> ahb-clk ----> apb0-clk
@@ -70,6 +78,7 @@ int clock_init(void) {
 	 * at most wait for 8 present running clock cycles
 	 */
 	sdelay(10);
+#endif /* OLD CPU clock config */
 
 	/* ddr clock source is pll5 */
 	sr32(&ccm->pll5_cfg, 29, 1, DDR_CLK_OUT_DISABLE);
@@ -81,6 +90,7 @@ int clock_init(void) {
 	sdelay(0x100000);
 	sr32(&ccm->pll5_cfg, 29, 1, DDR_CLK_OUT_ENABLE);
 
+#ifdef CONFIG_SUN4I
 	/* if we don't reset the gps module, it will access sdram
 	 * but sdram is not ready, and the system will die...
 	 */
@@ -89,6 +99,7 @@ int clock_init(void) {
 	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_GPS, 1, CLK_GATE_OPEN);
 	sdelay(0x100);
 	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_GPS, 1, CLK_GATE_CLOSE);
+#endif
 
 #ifdef CONFIG_SUN5I
 	/* setup MBUS clock */
@@ -107,22 +118,6 @@ int clock_init(void) {
 	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_DLL, 1, CLK_GATE_OPEN);
 #endif
 	sdelay(0x1000);
-#endif
-
-#endif
-
-#ifdef CONFIG_SUN5I
-
-#ifdef CONFIG_SPL_BUILD
-	/* Hardcode sun5i clock config for now */
-	ccm->cpu_ahb_apb0_cfg = 0x00010010;
-	ccm->pll1_cfg = 0xa1005000;
-	sdelay(200);
-	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
-
-	/* dram clock setup is in dram-sun5i.c */
-#endif
-
 #endif
 
 	/* uart clock source is apb1 */

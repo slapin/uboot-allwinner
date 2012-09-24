@@ -110,11 +110,8 @@ struct dram_para {
 
 #ifdef CONFIG_SUN4I
 #define DCLK_OUT_OFFSET           (15)
-#endif
-#ifdef CONFIG_SUN5I
-#define DCLK_OUT_OFFSET           (16)
-#endif
 #define DRAM_CTRL_SELECT_MAGIC    (0x16237495)
+#endif
 
 #define MCR_ENABLE_MODE           (3)
 #define MCR_MODE_NORMAL           (0)
