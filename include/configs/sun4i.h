@@ -203,8 +203,8 @@
 	"bootcmd_uenv=if test -n ${uenvcmd}; then echo Running uenvcmd ...; run uenvcmd; fi\0" \
 	"bootconf=linux/conf.d/uboot.conf\0" \
 	"bootdelay=3\0" \
-	"bootenv=linux/uEnv.txt\0" \
-	"bootscr=linux/boot.scr\0" \
+	"bootenv=linux/conf.d/uEnv.txt\0" \
+	"bootscr=linux/conf.d/boot.scr\0" \
 	"console=ttyS0,115200\0" \
 	"device=tablet\0" \
 	"env_reset=linux/conf.d/env_reset\0" \
@@ -218,8 +218,8 @@
 	"load_env=fatload nand 0 ${scriptaddr} ${bootenv}\0" \
 	"load_fathw=fatload mmc 0 0x43000000 script.bin || ext2load mmc 0 0x43000000 script.bin" \
 	" || ext2load mmc 0 43000000 ${hw_conf}\0" \
-	"load_hw=fatload mmc 0 43000000 ${hw_conf}\0" \
-	"load_scr=fatload mmc 0 ${scriptaddr} ${bootscr}\0" \
+	"load_hw=fatload nand 0 43000000 ${hw_conf}\0" \
+	"load_scr=fatload nand 0 ${scriptaddr} ${bootscr}\0" \
 	"loglevel=8\0" \
 	"mac=""\0" \
 	"mmc_root=/dev/mmcblk0p2\0" \
@@ -234,7 +234,7 @@
 	"rescue_shell=0\0" \
 	"reset_env=run load_bootconf; setenv reset_flag 0; saveenv\0" \
 	"reset_flag=0\0" \
-	"reset_load=if fatload mmc 0 ${scriptaddr} ${env_reset}; then env import -t ${scriptaddr} ${filesize}; run reset_test; fi\0" \
+	"reset_load=if fatload nand 0 ${scriptaddr} ${env_reset}; then env import -t ${scriptaddr} ${filesize}; run reset_test; fi\0" \
 	"reset_root=setenv root_dev ${root}; setenv root_flag 0\0" \
 	"reset_test=if test ${reset_flag} -eq 1; then run reset_env; fi\0" \
 	"root=/dev/nandd\0" \
@@ -261,7 +261,7 @@
 	"setargs_shell=setenv bootargs console=${console} root=${root_dev} loglevel=${loglevel}" \
 	" rd.driver.post=${modules} mac_addr=${ethaddr} ${ifup_auto} ${params} rd.break\0" \
 	"shell_flag=0\0" \
-	"shell_load=if fatload mmc 0 ${scriptaddr} ${rescue}; then env import -t ${scriptaddr} ${filesize}; run shell_test; fi\0" \
+	"shell_load=if fatload nand 0 ${scriptaddr} ${rescue}; then env import -t ${scriptaddr} ${filesize}; run shell_test; fi\0" \
 	"shell_test=if test ${shell_flag} -eq 1; then setenv shell_flag 0; saveenv; run bootcmd_shell; fi\0" \
 	"usb_root=""\0" \
 
