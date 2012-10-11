@@ -232,7 +232,7 @@
 	"params=\0" \
 	"rescue=linux/conf.d/rescue_shell\0" \
 	"rescue_shell=0\0" \
-	"reset_env=run load_bootconf; setenv reset_flag 0; saveenv\0" \
+	"reset_env=env default -f; run load_bootconf; setenv reset_flag 0; saveenv\0" \
 	"reset_flag=0\0" \
 	"reset_load=if fatload nand 0 ${scriptaddr} ${env_reset}; then env import -t ${scriptaddr} ${filesize}; run reset_test; fi\0" \
 	"reset_root=setenv root_dev ${root}; setenv root_flag 0\0" \
