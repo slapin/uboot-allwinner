@@ -63,7 +63,7 @@
 #define SUNXI_CCM_MMC3_SCLK_CFG		(SUNXI_CCM_BASE + 0x94)
 
 /* pll1 factors */
-#define PLL1_FACTOR_N			21
+#define PLL1_FACTOR_N			16	
 #define PLL1_FACTOR_K			1
 #define PLL1_FACTOR_M			0
 #define PLL1_FACTOR_P			0
