@@ -250,8 +250,10 @@
 	"set_modules=if test ${device} = mele; then setenv modules ${modules_mele}; else setenv modules ${modules_tablet}; fi\0" \
 	"set_nand=if test ${root_device} = nand && test -n ${nand_root}; then setenv root_dev ${nand_root}; setenv root_flag 1;" \
 	" else setenv root_dev 0; fi\0" \
+	"set_nand_linux=if test ${root_device} = nand_linux && test -n ${nand_linux_root}; then setenv root_dev ${nand_linux_root};" \
+	"setenv root_flag 1; fi\0" \
 	"set_net=if test ${root_device} = net && test -n ${net_root}; then setenv root_dev ${net_root}; setenv root_flag 1; fi\0" \
-	"set_root=run set_nand; run set_mmc; run set_usb; run set_sata; run set_net\0" \
+	"set_root=run set_nand; run set_mmc; run set_nand_linux; run set_usb; run set_sata; run set_net\0" \
 	"set_root_dev=run reset_root; run set_root; if test ${root_flag} -eq 0; then run reset_root; fi\0" \
 	"set_sata=if test ${root_device} = sata && test -n ${sata_root}; then setenv root_dev ${sata_root}; setenv root_flag 1; fi\0" \
 	"set_usb=if test ${root_device} = usb && test -n ${usb_root}; then setenv root_dev ${usb_root}; setenv root_flag 1; fi\0" \
