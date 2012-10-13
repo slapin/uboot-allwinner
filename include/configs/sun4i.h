@@ -194,7 +194,7 @@
 	"bootargs=console=${console} root=${root} loglevel=${loglevel} panic=${panicarg}\0" \
 	"bootcmd_bootscr=if run load_scr; then echo Jumping to ${bootscr}; source ${scriptaddr}; fi\0" \
 	"bootcmd_env=if run load_env; then echo Loaded environment from ${bootenv}; env import -t ${scriptaddr} ${filesize}; fi\0" \
-	"bootcmd_initrd=run shell_load; run reset_load; run set_modules; run set_root_dev; run set_bootargs; run load_hw; run boot_initrd\0" \
+	"bootcmd_initrd=run set_modules; run set_root_dev; run set_bootargs; run load_hw; run boot_initrd\0" \
 	"bootcmd_mmc=run setargs; run load_fathw; run boot_mmc\0" \
 	"bootcmd_nand=run set_nand; if test ${root_dev} = ${nand_root}; then run setargs; run boot_normal; fi\0" \
         "bootcmd_nand_env=run setargs_nand; run boot_normal\0" \
@@ -267,7 +267,7 @@
 
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"run bootcmd_scr; run bootcmd_nand; run bootcmd_initrd; run bootcmd_mmc; reset"
+#define CONFIG_BOOTCOMMAND	"run bootcmd_scr; run shell_load; run reset_load; run bootcmd_nand; run bootcmd_initrd; run bootcmd_mmc; reset"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 /*
