@@ -198,4 +198,8 @@
 #define CONFIG_SYS_I2C_SLAVE		0x7f
 #define CONFIG_CMD_I2C
 
+/* Watchdog */
+/* #define CONFIG_WATCHDOG */
+/* #define CONFIG_SUNXI_WATCHDOG */
+
 #endif /* __CONFIG_H */
