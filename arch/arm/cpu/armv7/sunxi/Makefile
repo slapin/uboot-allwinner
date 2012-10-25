@@ -23,25 +23,20 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(CPU).o
+LIB	=  $(obj)lib$(SOC).o
 
-START	:= start.o
+SOBJS	+= reset.o
 
-COBJS	+= cache_v7.o
+COBJS	+= timer.o
+COBJS	+= dram.o
+COBJS	+= board.o
+COBJS	+= clock.o
+COBJS	+= pinmux.o
 
-COBJS	+= cpu.o
-COBJS	+= syslib.o
-COBJS	+= cmd_boot.o
+SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
 
-ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX)$(CONFIG_TEGRA20)$(CONFIG_SUNXI),)
-SOBJS	+= lowlevel_init.o
-endif
-
-SRCS	:= $(START:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
-START	:= $(addprefix $(obj),$(START))
-
-all:	$(obj).depend $(START) $(LIB)
+all:	 $(obj).depend $(LIB)
 
 $(LIB):	$(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
