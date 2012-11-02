@@ -435,6 +435,7 @@ __s32 nfc_set_cmd_register(NFC_CMD_LIST *cmd)
 		cfg = 0;
 		/*set addr*/
 		if (cur_cmd->addr_cycle){
+			NFC_DBG("cmd set_addr: addr=%p, addr_cycle=%d\n", cur_cmd->addr,cur_cmd->addr_cycle); 
 			_set_addr(cur_cmd->addr,cur_cmd->addr_cycle);
 			cfg |= ( (cur_cmd->addr_cycle - 1) << 16);
 			cfg |= NFC_SEND_ADR;
@@ -442,20 +443,24 @@ __s32 nfc_set_cmd_register(NFC_CMD_LIST *cmd)
 
 		/*set NFC_REG_CMD*/
 		/*set cmd value*/
+		NFC_DBG("cmd value: %x\n", cur_cmd->value);
 		cfg |= cur_cmd->value;
 		/*set sequence mode*/
 		//cfg |= 0x1<<25;
 		/*wait rb?*/
 		if (cur_cmd->wait_rb_flag){
+			NFC_DBG("cmd wait_rb_flag\n");
 			cfg |= NFC_WAIT_FLAG;
 		}
 		if (cur_cmd->data_fetch_flag){
+			NFC_DBG("cmd data_fetch_flag bytecount=%d\n", cur_cmd->bytecnt);
 			NFC_WRITE_REG(NFC_REG_CTL, (NFC_READ_REG(NFC_REG_CTL)) & (~NFC_RAM_METHOD));
 			cfg |= NFC_DATA_TRANS;
 			NFC_WRITE_REG(NFC_REG_CNT, cur_cmd->bytecnt);
 		}
 		/*send command*/
 		cfg |= NFC_SEND_CMD1;
+		NFC_DBG("cmd REG_CMD=%x\n", cfg);
 		NFC_WRITE_REG(NFC_REG_CMD, cfg);
 		cur_cmd = cur_cmd ->next;
 	}

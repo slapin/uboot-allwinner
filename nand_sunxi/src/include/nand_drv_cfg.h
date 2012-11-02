@@ -114,13 +114,13 @@
 //==============================================================================
 
 //define if need print the physic operation module debug message
-#define PHY_DBG_MESSAGE_ON                  (0)
+#define PHY_DBG_MESSAGE_ON                  (1)
 
 //define if need print the physic operation module error message
-#define PHY_ERR_MESSAGE_ON                  (0)
+#define PHY_ERR_MESSAGE_ON                  (1)
 
 //define if need print the nand hardware scan module debug message
-#define SCAN_DBG_MESSAGE_ON                 (0)
+#define SCAN_DBG_MESSAGE_ON                 (1)
 
 //define if need print the nand hardware scan module error message
 #define SCAN_ERR_MESSAGE_ON                 (0)

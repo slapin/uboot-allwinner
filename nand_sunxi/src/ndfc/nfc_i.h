@@ -29,9 +29,16 @@
 #include "../include/nand_ndfc.h"
 
 
+#define    NFC_DBG(...)                         PRINT(__VA_ARGS__)
 
-#define NFC_READ_REG(reg)   		(reg)
-#define NFC_WRITE_REG(reg,data) 	(reg) = (data)
+#if 1
+static unsigned int _reg_dump_tmp;
+#  define NFC_READ_REG(reg)   		((_reg_dump_tmp = (reg)), PRINT("NFC READ "#reg "=%x\n", _reg_dump_tmp), _reg_dump_tmp)
+#  define NFC_WRITE_REG(reg, data) 	(reg) = ((_reg_dump_tmp = (data)), PRINT("NFC WRITE "#reg "=%x\n", _reg_dump_tmp), _reg_dump_tmp)
+#else
+#  define NFC_READ_REG(reg)   		(reg)
+#  define NFC_WRITE_REG(reg,data) 	(reg) = (data)
+#endif
 
 
 #define ERR_ECC 	12
