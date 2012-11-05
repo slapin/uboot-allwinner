@@ -202,4 +202,8 @@
 /* #define CONFIG_WATCHDOG */
 /* #define CONFIG_SUNXI_WATCHDOG */
 
+/* GPIO */
+#define CONFIG_SUNXI_GPIO
+#define CONFIG_CMD_GPIO
+
 #endif /* __CONFIG_H */
