@@ -69,7 +69,7 @@
 /* A10-EVB has 1 banks of DRAM, we use only one in U-Boot */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1				CONFIG_SYS_SDRAM_BASE	/* SDRAM Bank #1 */
-#if 0
+#if defined(CONFIG_MK802)
 /* Nand config */
 #define CONFIG_NAND
 #define CONFIG_NAND_SUNXI
@@ -139,10 +139,10 @@
  */
 #define CONFIG_SYS_NO_FLASH
 
-#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KB */
+#define CONFIG_SYS_MONITOR_LEN		(512 << 10)	/* 256 KB */
 #define CONFIG_IDENT_STRING		" Allwinner Technology "
 
-#define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512)KB */
+#define CONFIG_ENV_OFFSET		((8 + 24 + 1024) << 10) /* (8 + 24 + 512)KB */
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KB */
 
 #define CONFIG_BOOTCOMMAND \
