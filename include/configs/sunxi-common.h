@@ -69,14 +69,13 @@
 /* A10-EVB has 1 banks of DRAM, we use only one in U-Boot */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1				CONFIG_SYS_SDRAM_BASE	/* SDRAM Bank #1 */
-#if defined(CONFIG_MK802)
+
 /* Nand config */
 #define CONFIG_NAND
 #define CONFIG_NAND_SUNXI
 #define CONFIG_CMD_NAND                         /* NAND support */
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
 #define CONFIG_SYS_NAND_BASE            0x00
-#endif
 
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_SETEXPR
