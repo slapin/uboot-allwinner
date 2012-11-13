@@ -153,12 +153,7 @@ static void sunxi_pll5_nand_clock(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 	u32 ctl, div_p, factor_n, factor_k, factor_m,
 	    clock, nand_clk_divid_ratio, edo_clk;
-	ctl = readl(SUNXI_CCM_PLL5_CFG);
-	div_p = (ctl >> 16) & 0x3;
-	factor_n = (ctl >> 8) & 0x1f;
-	factor_k = ((ctl >> 4) & 0x3) + 1;
-	factor_m = ((ctl >> 0) & 0x3) + 1;
-	clock = 24 * factor_n * factor_k/div_p/factor_m;
+	clock = clock_get_pll5();
 	edo_clk = NAND_MAX_CLOCK * 2;
 	/*FIXME: Ugly :( */
 	nand_clk_divid_ratio = clock / edo_clk;
