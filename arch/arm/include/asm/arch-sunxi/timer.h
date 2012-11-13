@@ -89,10 +89,12 @@ struct sunxi_timer_reg {
 	struct sunxi_wdog wdog;
 	u8 res3[8];
 	struct sunxi_64cnt cnt64;
-	u8 res4[0x5c];
+	u8 res4[0x58];
 	struct sunxi_rtc rtc;
 	struct sunxi_alarm alarm;
 	struct sunxi_tgp tgp[4];
+	u8 res5[8];
+	u32 cpu_cfg;
 };
 
 #endif /* __ASSEMBLY__ */

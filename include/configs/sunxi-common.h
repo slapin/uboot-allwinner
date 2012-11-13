@@ -101,6 +101,10 @@
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
+/* Flat Device Tree (FDT/DT) support */
+#define CONFIG_OF_LIBFDT
+#define CONFIG_SYS_BOOTMAPSZ		(16 << 20)
+
 /*
  * Miscellaneous configurable options
  */
@@ -218,9 +222,6 @@
 /* SPL starts at offset 8KiB im MMC and has the size of 24KiB */
 #define CONFIG_SPL_PAD_TO		24576		/* decimal for 'dd' */
 
-/* #define CONFIG_WATCHDOG */		/* automatic watchdog support */
-#define CONFIG_SUNXI_WATCHDOG		/* sunxi watchdog driver */
-#define CONFIG_CMD_WATCHDOG		/* watchdog command setting the watchdog timeout */
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_NET
 #undef CONFIG_CMD_NFS
@@ -232,6 +233,11 @@
 #define CONFIG_SUNXI_I2C
 #define CONFIG_SYS_I2C_SLAVE		0x7f
 #define CONFIG_CMD_I2C
+
+/* Watchdog */
+/* #define CONFIG_WATCHDOG */		/* automatic watchdog support */
+#define CONFIG_SUNXI_WATCHDOG		/* sunxi watchdog driver */
+#define CONFIG_CMD_WATCHDOG		/* watchdog command setting the watchdog timeout */
 
 /* GPIO */
 #define CONFIG_SUNXI_GPIO
