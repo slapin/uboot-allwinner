@@ -1,3 +1,4 @@
+#define DEBUG
 /*
  * (C) Copyright 2012
  * Sergey Lapin <slapin@ossfans.org>
@@ -66,8 +67,6 @@
 
 #define NFC_RAM0_BASE		0x01c03400
 
-#if defined(CONFIG_NAND_SUNXI) && defined(CONFIG_NAND)
-
 static void sunxi_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 {
 }
@@ -100,7 +99,7 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 	int i;
 	struct nand_chip *nand = mtd->priv;
 	int addr_cycle, wait_rb_flag, data_fetch_flag, byte_count;
-	/* debug("nand command = %u, col %d. page_addr %d\n", command, column, page_addr); */
+	debug("nand command = %02x, col %d. page_addr %d\n", command, column, page_addr);
 	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
 	addr_cycle = wait_rb_flag = data_fetch_flag = 0;
 	switch(command) {
@@ -138,6 +137,7 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 static uint8_t sunxi_nand_read_byte(struct mtd_info *mtd)
 {
 	uint8_t data = readb(NFC_RAM0_BASE + read_offset);
+	debug("NAND %03x: %02x\n", read_offset, data);
 	read_offset++;
 	return data;
 }
@@ -236,5 +236,3 @@ int board_nand_init(struct nand_chip *nand)
 	nand->read_byte = sunxi_nand_read_byte;
 	return 0;
 }
-#endif
-
