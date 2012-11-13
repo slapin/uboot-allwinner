@@ -33,18 +33,18 @@
 #include <asm/arch/clock.h>
 
 #ifdef DEBUG
-uint32_t debug_readl(void *addr) {
+uint32_t debug_readl(const char *name, void *addr) {
 	uint32_t r = readl(addr);
-	debug("READ %p = %08x\n", addr, r);
+	debug("READ %s=%08x\n", name, r);
 	return r;
 }
 
-void debug_writel(uint32_t r, void *addr) {
-	debug("WRITE %p = %08x\n", addr, r);
-	writel(addr, r);
+void debug_writel(const char *name, uint32_t r, void *addr) {
+	debug("WRITE %s=%08x\n", name, r);
+	writel(r, addr);
 }
-#define readl(addr)		debug_readl(addr)
-#define writel(addr, value)	debug_writel(addr, value)
+#define readl(addr)		debug_readl(#addr, (void *)addr)
+#define writel(value, addr)	debug_writel(#addr, value, (void *)addr)
 #endif
 #define NFC_REG_CTL		0x01c03000
 #define NFC_EN			(1 << 0)
