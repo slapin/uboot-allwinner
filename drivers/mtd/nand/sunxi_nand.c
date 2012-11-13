@@ -214,7 +214,7 @@ int board_nand_init(struct nand_chip *nand)
 	writel(0xff, NFC_REG_TIMING_CFG);
 	writel(0x800, NFC_REG_SPARE_AREA); /* Controller SRAM area where spare data should get accumulated during DMA data transfer */
 	ctl = readl(NFC_REG_ECC_CTL);
-	ctl &= NFC_RANDOM_EN;
+	ctl &= ~NFC_RANDOM_EN;
 	writel(ctl, NFC_REG_ECC_CTL);
 	/* Selecting chip 0 */
 	ctl = readl(NFC_REG_CTL);
