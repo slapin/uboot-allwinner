@@ -167,7 +167,7 @@ static void sunxi_pll5_nand_clock(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 	u32 ctl, div_p, factor_n, factor_k, factor_m,
 	    clock, nand_clk_divid_ratio, edo_clk;
-	clock = clock_get_pll5();
+	clock = clock_get_pll5() / 1000000;
 	edo_clk = NAND_MAX_CLOCK * 2;
 	/*FIXME: Ugly :( */
 	nand_clk_divid_ratio = clock / edo_clk;
@@ -187,12 +187,14 @@ static void sunxi_pll5_nand_clock(void)
 	setbits_le32(&ccm->nand_sclk_cfg, (1 << 31));
 	/* open clock for nand */
 	setbits_le32(&ccm->ahb_gate0, (1 << AHB_GATE_OFFSET_NAND));
+	debug("NAND CLock: PLL5=%dMHz, divid_ratio=%d, clock=%dMHz\n", clock, (clock>>3)/(nand_clk_divid_ratio+1));
 }
 
 int board_nand_init(struct nand_chip *nand)
 {
 	u32 ctl;
 
+	debug("board_nand_init\n");
 	sunxi_pll5_nand_clock();
 	ctl = readl(NFC_REG_ECC_CTL);
 	ctl &= ~NFC_ECC_MODE;
