@@ -171,7 +171,7 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 	writel(cfg, NFC_REG_CMD);
 	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
 	/* Waiting for interrupt flag to be set */
-	while(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG);
+	while(!(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG));
 	/* Clearing interrupt if any */
 	writel(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG, NFC_REG_ST);
 #if 0
@@ -268,7 +268,7 @@ int board_nand_init(struct nand_chip *nand)
 	writel(ctl, NFC_REG_CMD);
 	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
 	/* Waiting for interrupt flag to be set */
-	while(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG);
+	while(!(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG));
 	/* Clearing interrupt if any */
 	writel(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG, NFC_REG_ST);
 	/* Select ready/busy 0 */
