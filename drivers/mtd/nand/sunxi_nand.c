@@ -32,6 +32,20 @@
 #include <asm/gpio.h>
 #include <asm/arch/clock.h>
 
+#ifdef DEBUG
+uint32_t debug_readl(void *addr) {
+	uint32_t r = readl(addr);
+	debug("READ %p = %08x\n", addr, r);
+	return r;
+}
+
+void debug_writel(uint32_t r, void *addr) {
+	debug("WRITE %p = %08x\n", addr, r);
+	writel(addr, r);
+}
+#define readl(addr)		debug_readl(addr)
+#define writel(addr, value)	debug_writel(addr, value)
+#endif
 #define NFC_REG_CTL		0x01c03000
 #define NFC_EN			(1 << 0)
 #define NFC_RESET		(1 << 1)
