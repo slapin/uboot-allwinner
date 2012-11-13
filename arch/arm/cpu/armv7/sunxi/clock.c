@@ -60,15 +60,6 @@ int clock_init(void)
 	/* open the clock for uart */
 	sr32(&ccm->apb1_gate, 16 + CONFIG_CONS_INDEX - 1, 1, CLK_GATE_OPEN);
 
-#ifdef CONFIG_NAND_SUNXI
-	/* nand clock source is osc24m */
-	sr32(&ccm->nand_sclk_cfg, 24, 2, NAND_CLK_SRC_OSC24);
-	sr32(&ccm->nand_sclk_cfg, 16, 2, NAND_CLK_DIV_N);
-	sr32(&ccm->nand_sclk_cfg, 0, 4, NAND_CLK_DIV_M);
-	sr32(&ccm->nand_sclk_cfg, 31, 1, CLK_GATE_OPEN);
-	/* open clock for nand */
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_NAND, 1, CLK_GATE_OPEN);
-#endif
 
 	return 0;
 }
