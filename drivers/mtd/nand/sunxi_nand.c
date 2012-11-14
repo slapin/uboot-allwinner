@@ -187,7 +187,7 @@ static void sunxi_pll5_nand_clock(void)
 	setbits_le32(&ccm->nand_sclk_cfg, (1 << 31));
 	/* open clock for nand */
 	setbits_le32(&ccm->ahb_gate0, (1 << AHB_GATE_OFFSET_NAND));
-	debug("NAND CLock: PLL5=%dMHz, divid_ratio=%d, clock=%dMHz\n", clock, (clock>>3)/(nand_clk_divid_ratio+1));
+	debug("NAND Clock: PLL5=%dMHz, divid_ratio=%d, clock=%dMHz\n", clock, nand_clk_divid_ratio, (clock>>3)/(nand_clk_divid_ratio+1));
 }
 
 int board_nand_init(struct nand_chip *nand)
