@@ -51,6 +51,7 @@ void debug_writel(const char *name, uint32_t r, void *addr) {
 #define NFC_REG_CTL		0x01c03000
 #define NFC_EN			(1 << 0)
 #define NFC_RESET		(1 << 1)
+#define NFC_RB_SEL		(1 << 3)
 #define NFC_RAM_METHOD		(1 << 14)
 #define NFC_CE_SEL		(7 << 24)
 
@@ -97,7 +98,7 @@ static int sunxi_nand_dev_ready(struct mtd_info *mtd)
 	return (readl(NFC_REG_ST) & NFC_RB_STATE0) ? 1: 0;
 }
 
-static void sunxi_nand_select_chip(struct mtd_info *mtd, int chip)
+static void sunxi_nand_do_select_chip(int chip)
 {
 	u32 ctl;
 	ctl = readl(NFC_REG_CTL);
@@ -106,14 +107,35 @@ static void sunxi_nand_select_chip(struct mtd_info *mtd, int chip)
 	writel(ctl, NFC_REG_CTL);
 }
 
+static void sunxi_nand_select_chip(struct mtd_info *mtd, int chip)
+{
+	sunxi_nand_do_select_chip(chip);
+}
+
 static int read_offset = 0, write_offset = 0;
 
-static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
-		int column, int page_addr)
+static void sunxi_nand_select_rb(int rb)
+{
+	u32 ctl;
+
+	ctl = readl(NFC_REG_CTL);
+	ctl &= ( (~NFC_RB_SEL) & 0xffffffff);
+	ctl |= ((rb & 0x1) << 3);
+	writel(ctl, NFC_REG_CTL);
+}
+
+static int sunxi_nand_check_rb(int rb)
+{
+        if (readl(NFC_REG_ST) & ((NFC_RB_STATE0 << (rb & 0x3))))
+		return 0;
+	else
+		return 1;
+}
+
+static void sunxi_nand_do_command(unsigned command, int column, int page_addr)
 {
 	u32 cfg = command;
 	int i;
-	struct nand_chip *nand = mtd->priv;
 	int addr_cycle, wait_rb_flag, data_fetch_flag, byte_count;
 	debug("nand command = %02x, col %d. page_addr %d\n", command, column, page_addr);
 	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
@@ -148,6 +170,23 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 	writel(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG, NFC_REG_ST);
 	read_offset = 0;
 	write_offset = 0;
+	switch(command) {
+	case NAND_CMD_RESET:
+		/*wait rb0 ready*/
+		sunxi_nand_select_rb(0);
+		while(sunxi_nand_check_rb(0));
+
+		/*wait rb1 ready*/
+		sunxi_nand_select_rb(1);
+		while(sunxi_nand_check_rb(1));
+		break;
+	}
+}
+
+static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
+		int column, int page_addr)
+{
+	sunxi_nand_do_command(command, column, page_addr);
 }
 
 static uint8_t sunxi_nand_read_byte(struct mtd_info *mtd)
@@ -223,23 +262,10 @@ int board_nand_init(struct nand_chip *nand)
 	ctl = readl(NFC_REG_ECC_CTL);
 	ctl &= ~NFC_RANDOM_EN;
 	writel(ctl, NFC_REG_ECC_CTL);
-	/* Selecting chip 0 */
-	ctl = readl(NFC_REG_CTL);
-	ctl &= ~NFC_CE_SEL;
-	ctl |= ((0 & 7) << 24); /* Chip 0 */
-	writel(ctl, NFC_REG_CTL);
-	/* Waiting for command fifo to be empty */
-	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
-	/* Sending reset command */
-	ctl = 0xff;
-	ctl |= NFC_SEND_CMD1;
-	writel(ctl, NFC_REG_CMD);
-	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
-	/* Waiting for interrupt flag to be set */
-	while(!(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG));
-	/* Clearing interrupt if any */
-	writel(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG, NFC_REG_ST);
-	/* Select ready/busy 0 */
+	/* Reset NAND chip */
+	sunxi_nand_do_select_chip(0);
+	sunxi_nand_do_command(NAND_CMD_RESET, -1, -1);
+
 	nand->ecc.mode = NAND_ECC_SOFT;
 	nand->chip_delay = 20;
 	nand->dev_ready = sunxi_nand_dev_ready;
