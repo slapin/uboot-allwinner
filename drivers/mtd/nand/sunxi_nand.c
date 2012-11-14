@@ -100,6 +100,7 @@ static int sunxi_nand_dev_ready(struct mtd_info *mtd)
 
 static void sunxi_nand_do_select_chip(int chip)
 {
+	debug("nand_select_chip(%d)\n", chip);
 	u32 ctl;
 	ctl = readl(NFC_REG_CTL);
 	ctl &= ~NFC_CE_SEL;
@@ -118,6 +119,7 @@ static void sunxi_nand_select_rb(int rb)
 {
 	u32 ctl;
 
+	debug("nand_select_rb(%d)\n", rb);
 	ctl = readl(NFC_REG_CTL);
 	ctl &= ( (~NFC_RB_SEL) & 0xffffffff);
 	ctl |= ((rb & 0x1) << 3);
