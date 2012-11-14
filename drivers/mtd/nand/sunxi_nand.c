@@ -98,7 +98,7 @@ static int sunxi_nand_dev_ready(struct mtd_info *mtd)
 	return (readl(NFC_REG_ST) & NFC_RB_STATE0) ? 1: 0;
 }
 
-static void sunxi_nand_do_select_chip(int chip)
+static void sunxi_nand_select_chip(struct mtd_info *mtd, int chip)
 {
 	debug("nand_select_chip(%d)\n", chip);
 	u32 ctl;
@@ -106,11 +106,6 @@ static void sunxi_nand_do_select_chip(int chip)
 	ctl &= ~NFC_CE_SEL;
 	ctl |= ((chip & 7) << 24);
 	writel(ctl, NFC_REG_CTL);
-}
-
-static void sunxi_nand_select_chip(struct mtd_info *mtd, int chip)
-{
-	sunxi_nand_do_select_chip(chip);
 }
 
 static int read_offset = 0, write_offset = 0;
@@ -134,7 +129,8 @@ static int sunxi_nand_check_rb(int rb)
 		return 1;
 }
 
-static void sunxi_nand_do_command(unsigned command, int column, int page_addr)
+static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
+		int column, int page_addr)
 {
 	u32 cfg = command;
 	int i;
@@ -183,12 +179,6 @@ static void sunxi_nand_do_command(unsigned command, int column, int page_addr)
 		while(sunxi_nand_check_rb(1));
 		break;
 	}
-}
-
-static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
-		int column, int page_addr)
-{
-	sunxi_nand_do_command(command, column, page_addr);
 }
 
 static uint8_t sunxi_nand_read_byte(struct mtd_info *mtd)
