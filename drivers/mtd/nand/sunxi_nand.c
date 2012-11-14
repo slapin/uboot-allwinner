@@ -264,9 +264,6 @@ int board_nand_init(struct nand_chip *nand)
 	ctl = readl(NFC_REG_ECC_CTL);
 	ctl &= ~NFC_RANDOM_EN;
 	writel(ctl, NFC_REG_ECC_CTL);
-	/* Reset NAND chip */
-	sunxi_nand_do_select_chip(0);
-	sunxi_nand_do_command(NAND_CMD_RESET, -1, -1);
 
 	nand->ecc.mode = NAND_ECC_SOFT;
 	nand->chip_delay = 20;
