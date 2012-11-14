@@ -43,7 +43,9 @@ void debug_writel(const char *name, uint32_t r, void *addr) {
 	debug("WRITE %s=%08x\n", name, r);
 	writel(r, addr);
 }
+#undef readl
 #define readl(addr)		debug_readl(#addr, (void *)addr)
+#undef writel
 #define writel(value, addr)	debug_writel(#addr, value, (void *)addr)
 #endif
 #define NFC_REG_CTL		0x01c03000
