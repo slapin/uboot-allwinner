@@ -81,8 +81,21 @@ void debug_writel(const char *name, uint32_t r, void *addr) {
 
 #define NFC_RAM0_BASE		0x01c03400
 
+static int read_offset = 0, write_offset = 0;
+static uint8_t sunxi_nand_read_byte(struct mtd_info *mtd)
+{
+	uint8_t data = readb(NFC_RAM0_BASE + read_offset);
+	read_offset++;
+	return data;
+}
+
 static void sunxi_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 {
+	int i;
+	read_offset = 0;
+	for (i = 0; i < len; i++)
+		buf[i] = readb(NFC_REG_IO_DATA);
+	read_offset = 0;
 }
 
 static void sunxi_nand_write_buf(struct mtd_info *mtd, uint8_t *buf, int len)
@@ -104,25 +117,51 @@ static void sunxi_nand_select_chip(struct mtd_info *mtd, int chip)
 	writel(ctl, NFC_REG_CTL);
 }
 
-static int read_offset = 0, write_offset = 0;
 
-static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
-		int column, int page_addr)
+static void do_nand_cmd(int command, int column, int page_addr)
 {
-	u32 cfg = command;
-	int i;
-	struct nand_chip *nand = mtd->priv;
 	int addr_cycle, wait_rb_flag, data_fetch_flag, byte_count;
-	debug("nand command = %02x, col %d. page_addr %d\n", command, column, page_addr);
-	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
 	addr_cycle = wait_rb_flag = data_fetch_flag = 0;
+	u32 cfg = command, ctl;
+	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
 	switch(command) {
+	case NAND_CMD_READ0:
+		addr_cycle = 5;
+		data_fetch_flag = 0;
+		byte_count = 0;
+		ctl = column & 0xffff;
+		ctl |= ((page_addr & 0xffff) << 16);
+		writel(ctl, NFC_REG_ADDR_LOW);
+		writel((page_addr >> 16) & 0xff, NFC_REG_ADDR_HIGH);
+		break;
 	case NAND_CMD_READID:
 		writel(0, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
 		addr_cycle = 1;
 		data_fetch_flag = 1;
 		byte_count = 8;
+		break;
+	case NAND_CMD_RESET:
+		break;
+	case NAND_CMD_READSTART:
+		addr_cycle = 0;
+		writel(0, NFC_REG_ADDR_LOW);
+		writel(0, NFC_REG_ADDR_HIGH);
+		data_fetch_flag = 1;
+		byte_count = 8192;
+		break;
+	case NAND_CMD_RNDOUT:
+		addr_cycle = 2;
+		writel(column & 0xffff, NFC_REG_ADDR_LOW);
+		writel(0, NFC_REG_ADDR_HIGH);
+		break;
+	case NAND_CMD_RNDOUTSTART:
+		data_fetch_flag = 1;
+		byte_count = 218;
+		break;
+	default:
+		break;
+
 	}
 	cfg |= (addr_cycle << 16); /*  addr cycle */
 	if (addr_cycle > 0)
@@ -144,16 +183,92 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 	while(!(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG));
 	/* Clearing interrupt if any */
 	writel(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG, NFC_REG_ST);
-	read_offset = 0;
-	write_offset = 0;
 }
 
-static uint8_t sunxi_nand_read_byte(struct mtd_info *mtd)
+static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
+		int column, int page_addr)
 {
-	uint8_t data = readb(NFC_RAM0_BASE + read_offset);
-	debug("NAND %03x: %02x\n", read_offset, data);
-	read_offset++;
-	return data;
+	u32 cfg = command;
+	int i;
+	struct nand_chip *nand = mtd->priv;
+	debug("nand command = %u, col %d. page_addr %d\n", command, column, page_addr);
+	switch(command) {
+	case NAND_CMD_RESET:
+	case NAND_CMD_READID:
+		do_nand_cmd(command, column, page_addr);
+		break;
+	case NAND_CMD_READOOB:
+		do_nand_cmd(NAND_CMD_READ0, column + mtd->writesize, page_addr);
+		do_nand_cmd(NAND_CMD_READSTART, -1, -1);
+		break;
+	case NAND_CMD_READ0:
+		do_nand_cmd(NAND_CMD_READ0, column, page_addr);
+		do_nand_cmd(NAND_CMD_READSTART, -1, -1);
+		break;
+	}
+#if 0
+#if 0
+	void _add_cmd_list(NFC_CMD_LIST *cmd,__u32 value,__u32 addr_cycle,__u8 *addr,__u8 data_fetch_flag,
+			__u8 main_data_fetch,__u32 bytecnt,__u8 wait_rb_flag);
+#endif
+	addr_cycle = wait_rb_flag = data_fetch_flag = 0;
+	switch(command) {
+#if 0
+	case NAND_CMD_RNDOUT:
+		_add_cmd_list(cmd_list + 1,0x05,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
+	case NAND_CMD_STATUS:
+		_add_cmd_list(&cmd_list, 0x70, 0, addr, 1,NFC_IGNORE,1,NFC_IGNORE);
+	case NAND_CMD_STATUS_MULTI:
+		_add_cmd_list(&cmd_list, 0x71, 0, addr, 1,NFC_IGNORE,1,NFC_IGNORE);
+	case NAND_CMD_READ1:
+#endif
+	case NAND_CMD_READ0:
+#if 0
+		_cal_addr_in_chip(readop->block,readop->page,0,addr,5);
+		_add_cmd_list(cmd_list,0x00,5,addr,NFC_NO_DATA_FETCH,NFC_IGNORE,NFC_IGNORE,NFC_NO_WAIT_RB);
+	case NAND_CMD_READOOB:
+#endif
+	case NAND_CMD_READID:
+		writel(0, NFC_REG_ADDR_LOW);
+		writel(0, NFC_REG_ADDR_HIGH);
+		addr_cycle = 1;
+		data_fetch_flag = 1;
+		byte_count = 8;
+		break;
+#if 0
+		_add_cmd_list(&cmd, 0x90,1 , &addr, NFC_DATA_FETCH, NFC_IGNORE, 6, NFC_NO_WAIT_RB);
+	case NAND_CMD_PARAM:
+	case NAND_CMD_ERASE1:
+		_add_cmd_list(cmd_list+i,0x60,3,addr[i],NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE)
+	case NAND_CMD_ERASE2:
+		_add_cmd_list(cmd_list + i,0xd0,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
+	case NAND_CMD_SEQIN:
+#endif
+	case NAND_CMD_PAGEPROG:
+		break;
+#if 0
+		_add_cmd_list(cmd_list+1,0x10, 0,NFC_IGNORE,NFC_NO_DATA_FETCH,NFC_IGNORE, NFC_IGNORE,NFC_IGNORE);
+#endif
+	case NAND_CMD_RNDOUTSTART:
+		break;
+#if 0
+		_add_cmd_list(cmd_list + 2,0xe0,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
+#endif
+	case NAND_CMD_READSTART:
+		break;
+#if 0
+		_add_cmd_list(cmd_list + 3,0x30,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
+#endif
+	case NAND_CMD_RESET:
+		break;
+	}
+#if 0
+	/* ??? */
+	_add_cmd_list(&cmd, 0xed,1 , &addr, NFC_DATA_FETCH, NFC_IGNORE, 32, NFC_WAIT_RB);
+#endif
+#endif
+	read_offset = 0;
+	write_offset = 0;
 }
 
 static void sunxi_nand_write_byte(struct mtd_info *mtd, uint8_t data)
