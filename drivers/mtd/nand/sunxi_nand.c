@@ -94,7 +94,7 @@ static void sunxi_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 	int i;
 	read_offset = 0;
 	for (i = 0; i < len; i++)
-		buf[i] = readb(NFC_REG_IO_DATA);
+		buf[i] = readb(NFC_RAM0_BASE + i);
 	read_offset = 0;
 }
 
@@ -148,7 +148,8 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		writel(0, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
 		data_fetch_flag = 1;
-		byte_count = 8192;
+		byte_count = 512;
+		wait_rb_flag = 1;
 		break;
 	case NAND_CMD_RNDOUT:
 		addr_cycle = 2;
