@@ -85,6 +85,7 @@ void debug_writel(const char *name, uint32_t r, void *addr) {
 #define NFC_RAM0_BASE		0x01c03400
 
 static int read_offset = 0, write_offset = 0;
+static uint8_t page_buffer[8192 + 1024];
 static uint8_t sunxi_nand_read_byte(struct mtd_info *mtd)
 {
 	uint8_t data = readb(NFC_RAM0_BASE + read_offset);
@@ -95,9 +96,7 @@ static uint8_t sunxi_nand_read_byte(struct mtd_info *mtd)
 static void sunxi_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 {
 	int i;
-	read_offset = 0;
-	for (i = 0; i < len; i++)
-		buf[i] = readb(NFC_RAM0_BASE + i);
+	memcpy(buf, &page_buffer[0], len);
 	read_offset = 0;
 }
 
@@ -140,7 +139,9 @@ static int sunxi_nand_check_rb(int rb)
 	else
 		return 1;
 }
-
+/* Command - command to do
+ * column - address within page
+ * page_addr = page number (row)*/
 static void do_nand_cmd(int command, int column, int page_addr)
 {
 	int addr_cycle, wait_rb_flag, data_fetch_flag, byte_count;
@@ -171,7 +172,7 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		writel(0, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
 		data_fetch_flag = 1;
-		byte_count = 512;
+		byte_count = 1024;
 		wait_rb_flag = 1;
 		break;
 	case NAND_CMD_RNDOUT:
@@ -181,7 +182,8 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		break;
 	case NAND_CMD_RNDOUTSTART:
 		data_fetch_flag = 1;
-		byte_count = 218;
+		byte_count = 1024;
+		wait_rb_flag = 1;
 		break;
 	default:
 		break;
@@ -224,8 +226,9 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 		int column, int page_addr)
 {
 	u32 cfg = command;
-	int i;
+	int i, j;
 	struct nand_chip *nand = mtd->priv;
+	int bufloc, dlen;
 	debug("nand command = %u, col %d. page_addr %d\n", command, column, page_addr);
 	switch(command) {
 	case NAND_CMD_RESET:
@@ -233,12 +236,29 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 		do_nand_cmd(command, column, page_addr);
 		break;
 	case NAND_CMD_READOOB:
+		memset(page_buffer, 0, sizeof(page_buffer));
 		do_nand_cmd(NAND_CMD_READ0, column + mtd->writesize, page_addr);
-		do_nand_cmd(NAND_CMD_READSTART, -1, -1);
+		do_nand_cmd(NAND_CMD_RNDOUT, column + mtd->writesize, -1);
+		do_nand_cmd(NAND_CMD_RNDOUTSTART, -1, -1);
+		//do_nand_cmd(NAND_CMD_READSTART, -1, -1);
+		for (j = 0; j < 1024; j++)
+			page_buffer[j] = nand->read_byte(mtd);
+		read_offset = 0;
 		break;
 	case NAND_CMD_READ0:
-		do_nand_cmd(NAND_CMD_READ0, column, page_addr);
-		do_nand_cmd(NAND_CMD_READSTART, -1, -1);
+		bufloc = 0;
+		dlen = mtd->writesize;
+		memset(page_buffer, 0, sizeof(page_buffer));
+		for (i = 0; i < mtd->writesize / 1024 + 1; i++) {
+			do_nand_cmd(NAND_CMD_READ0, column, page_addr);
+			do_nand_cmd(NAND_CMD_RNDOUT, column + bufloc, -1);
+			do_nand_cmd(NAND_CMD_RNDOUTSTART, -1, -1);
+			//do_nand_cmd(NAND_CMD_READSTART, -1, -1);
+			for (j = 0; j < 1024; j++)
+				page_buffer[bufloc + j] = nand->read_byte(mtd);
+			read_offset = 0;
+			bufloc += 1024;
+		}
 		break;
 	}
 #if 0
