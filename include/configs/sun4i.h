@@ -26,7 +26,7 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define DEBUG
+/*#define DEBUG*/
 
 /*
  * Include common sunxi configuration where most the settings are
