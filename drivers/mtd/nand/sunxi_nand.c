@@ -32,22 +32,6 @@
 #include <asm/gpio.h>
 #include <asm/arch/clock.h>
 
-#ifdef DEBUG
-uint32_t debug_readl(const char *name, void *addr) {
-	uint32_t r = readl(addr);
-	debug("READ %s=%08x\n", name, r);
-	return r;
-}
-
-void debug_writel(const char *name, uint32_t r, void *addr) {
-	debug("WRITE %s=%08x\n", name, r);
-	writel(r, addr);
-}
-#undef readl
-#define readl(addr)		debug_readl(#addr, (void *)addr)
-#undef writel
-#define writel(value, addr)	debug_writel(#addr, value, (void *)addr)
-#endif
 #define NFC_REG_CTL		0x01c03000
 #define NFC_EN			(1 << 0)
 #define NFC_RESET		(1 << 1)
@@ -93,8 +77,11 @@ void debug_writel(const char *name, uint32_t r, void *addr) {
 #define NFC_RAM0_BASE		0x01c03400
 
 #define NFC_REG_RCMD_SET	0x01c03028
+#define NFC_REG_WCMD_SET	0x01c0302c
 
 #define NFC_REG_SECTOR_NUM	0x01c0301c
+
+#include "sunxi_debug_reg.c"
 
 static int read_offset = 0, write_offset = 0;
 static uint8_t page_buffer[8192 + 1024];
