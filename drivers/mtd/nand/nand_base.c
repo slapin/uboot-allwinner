@@ -151,14 +151,10 @@ static int check_offs_len(struct mtd_info *mtd,
  * nand_release_device - [GENERIC] release chip
  * @mtd: MTD device structure
  *
- * Deselect, release chip lock and wake up anyone waiting on the device.
+ * Release chip lock and wake up anyone waiting on the device.
  */
 static void nand_release_device(struct mtd_info *mtd)
 {
-	struct nand_chip *chip = mtd->priv;
-
-	/* De-select the NAND device */
-	chip->select_chip(mtd, -1);
 }
 
 /**
@@ -346,8 +342,10 @@ static int nand_block_bad(struct mtd_info *mtd, loff_t ofs, int getchip)
 		i++;
 	} while (!res && i < 2 && (chip->bbt_options & NAND_BBT_SCAN2NDPAGE));
 
-	if (getchip)
+	if (getchip) {
+		chip->select_chip(mtd, -1);
 		nand_release_device(mtd);
+	}
 
 	return res;
 }
@@ -916,6 +914,7 @@ int nand_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	ret = __nand_unlock(mtd, ofs, len, 0);
 
 out:
+	chip->select_chip(mtd, -1);
 	nand_release_device(mtd);
 
 	return ret;
@@ -984,6 +983,7 @@ int nand_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
 	ret = __nand_unlock(mtd, ofs, len, 0x1);
 
 out:
+	chip->select_chip(mtd, -1);
 	nand_release_device(mtd);
 
 	return ret;
@@ -1523,6 +1523,7 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 			chip->select_chip(mtd, chipnr);
 		}
 	}
+	chip->select_chip(mtd, -1);
 
 	ops->retlen = ops->len - (size_t) readlen;
 	if (oob)
@@ -1782,6 +1783,7 @@ static int nand_do_read_oob(struct mtd_info *mtd, loff_t from,
 			chip->select_chip(mtd, chipnr);
 		}
 	}
+	chip->select_chip(mtd, -1);
 
 	ops->oobretlen = ops->ooblen - readlen;
 
@@ -2165,8 +2167,10 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 	chip->select_chip(mtd, chipnr);
 
 	/* Check, if it is write protected */
-	if (nand_check_wp(mtd))
-		return -EIO;
+	if (nand_check_wp(mtd)) {
+		ret = -EIO;
+		goto err_out;
+	}
 
 	realpage = (int)(to >> chip->page_shift);
 	page = realpage & chip->pagemask;
@@ -2178,8 +2182,10 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 		chip->pagebuf = -1;
 
 	/* Don't allow multipage oob writes with offset */
-	if (oob && ops->ooboffs && (ops->ooboffs + ops->ooblen > oobmaxlen))
-		return -EINVAL;
+	if (oob && ops->ooboffs && (ops->ooboffs + ops->ooblen > oobmaxlen)) {
+		ret = -EINVAL;
+		goto err_out;
+	}
 
 	while (1) {
 		int bytes = mtd->writesize;
@@ -2230,6 +2236,9 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 	ops->retlen = ops->len - writelen;
 	if (unlikely(oob))
 		ops->oobretlen = ops->ooblen;
+
+err_out:
+	chip->select_chip(mtd, -1);
 	return ret;
 }
 
@@ -2360,8 +2369,10 @@ static int nand_do_write_oob(struct mtd_info *mtd, loff_t to,
 	chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
 
 	/* Check, if it is write protected */
-	if (nand_check_wp(mtd))
+	if (nand_check_wp(mtd)) {
+		chip->select_chip(mtd, -1);
 		return -EROFS;
+	}
 
 	/* Invalidate the page cache, if we write to the cached page */
 	if (page == chip->pagebuf)
@@ -2373,6 +2384,8 @@ static int nand_do_write_oob(struct mtd_info *mtd, loff_t to,
 		status = chip->ecc.write_oob_raw(mtd, chip, page & chip->pagemask);
 	else
 		status = chip->ecc.write_oob(mtd, chip, page & chip->pagemask);
+
+	chip->select_chip(mtd, -1);
 
 	if (status)
 		return status;
@@ -2610,6 +2623,7 @@ erase_exit:
 	ret = instr->state == MTD_ERASE_DONE ? 0 : -EIO;
 
 	/* Deselect and wake up anyone waiting on the device */
+	chip->select_chip(mtd, -1);
 	nand_release_device(mtd);
 
 	/* Do call back function */
