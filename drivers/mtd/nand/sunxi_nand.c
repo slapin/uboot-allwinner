@@ -251,9 +251,10 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		break;
 
 	}
-	cfg |= ((addr_cycle - 1) << 16); /*  addr cycle */
-	if (addr_cycle > 0)
+	if (addr_cycle > 0) {
 		cfg |= NFC_SEND_ADR;
+		cfg |= ((addr_cycle - 1) << 16); /*  addr cycle */
+	}
 	if (wait_rb_flag)
 		cfg |= NFC_WAIT_FLAG;
 	if (data_fetch_flag) {
