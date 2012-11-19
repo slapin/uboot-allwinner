@@ -431,7 +431,7 @@ int board_nand_init(struct nand_chip *nand)
 	ctl |= ( (0 & 0x1) << 2); /* Bus width */
 	ctl |= ( (0 & 0x1) << 6); /* CE_CTL */
 	ctl |= ( (0 & 0x1) << 7); /* CE_CTL1 */
-	ctl |= ( 0x1 << 8 );
+	ctl |= ( 0x1 << 8 );	  /* PAGE_SIZE = 2K */ /* Needs to be reset to actual page size */
 	ctl |= ((0 & 0x3) << 18); /* DDR_TYPE */
 	ctl |= ((0 & 0x1) << 31); /* DEBUG */
 	writel(ctl, NFC_REG_CTL);
