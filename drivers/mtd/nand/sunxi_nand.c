@@ -300,7 +300,7 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 	int i, j;
 	struct nand_chip *nand = mtd->priv;
 	int bufloc, dlen;
-	debug("nand command = %u, col %d. page_addr %d\n", command, column, page_addr);
+	debug("nand command = %x, col %d. page_addr %d\n", command, column, page_addr);
 	sunxi_nand_disable_random();
 	switch(command) {
 	case NAND_CMD_RESET:
