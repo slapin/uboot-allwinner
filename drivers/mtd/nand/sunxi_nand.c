@@ -189,6 +189,7 @@ static void do_nand_cmd(int command, int column, int page_addr)
 	addr_cycle = wait_rb_flag = data_fetch_flag = 0;
 	u32 cfg = command, ctl;
 	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
+	sunxi_nand_select_rb(0);
 	switch(command) {
 	case NAND_CMD_READ0:
 		addr_cycle = 5;
