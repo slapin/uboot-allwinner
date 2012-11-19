@@ -221,7 +221,7 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		writel(8, NFC_REG_SECTOR_NUM);
 		break;
 	case NAND_CMD_READID:
-		writel(0, NFC_REG_ADDR_LOW);
+		writel(column, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
 		addr_cycle = 1;
 		data_fetch_flag = 1;
