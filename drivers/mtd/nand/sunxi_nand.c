@@ -230,6 +230,8 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		writel(column & 0xffff, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
 		writel(0x30, NFC_REG_RCMD_SET);
+		data_fetch_flag = 1;
+		byte_count = 0x400;
 		cfg |= NFC_SEND_CMD2;
 		break;
 	default:
