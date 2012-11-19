@@ -27,6 +27,10 @@
 #ifndef _SUNXI_CONFIG_H
 #define _SUNXI_CONFIG_H
 
+#define DEBUG
+#define CONFIG_MTD_DEBUG
+#define CONFIG_MTD_DEBUG_VERBOSE 99
+
 /*
  * High Level Configuration Options
  */
