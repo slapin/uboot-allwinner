@@ -220,6 +220,14 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		clrsetbits_le32(cfg, (3<< 30), (2 << 30)); /* page command */
 		writel(8, NFC_REG_SECTOR_NUM);
 		break;
+	case NAND_CMD_PARAM:
+		writel(column, NFC_REG_ADDR_LOW);
+		writel(0, NFC_REG_ADDR_HIGH);
+		addr_cycle = 1;
+		data_fetch_flag = 1;
+		byte_count = 1024;
+		wait_rb_flag = 1;
+		break;
 	case NAND_CMD_READID:
 		writel(column, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
@@ -297,6 +305,7 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 	switch(command) {
 	case NAND_CMD_RESET:
 	case NAND_CMD_READID:
+	case NAND_CMD_PARAM:
 		do_nand_cmd(command, column, page_addr);
 		break;
 	case NAND_CMD_READOOB:
