@@ -205,16 +205,17 @@ static void do_nand_cmd(int command, int column, int page_addr)
 	switch(command) {
 	case NAND_CMD_READ0:
 		addr_cycle = 5;
-		data_fetch_flag = 0;
+		data_fetch_flag = 1;
 		byte_count = 1024;
 		wait_rb_flag = 1;
 		ctl = column & 0xffff;
 		ctl |= ((page_addr & 0xffff) << 16);
 		writel(ctl, NFC_REG_ADDR_LOW);
 		writel((page_addr >> 16) & 0xff, NFC_REG_ADDR_HIGH);
-		ctl = 0x05;
-		ctl |= (0xe0 << 8);
-		ctl |= (0x30 << 16);
+		ctl = 0;
+		ctl |= 0x30 << 0;
+		ctl |= 0x05 << 8;
+		ctl |= 0xe0 << 16;
 		writel(ctl, NFC_REG_RCMD_SET);
 		cfg |= NFC_SEND_CMD2;
 		clrsetbits_le32(cfg, (3<< 30), (2 << 30)); /* page command */
@@ -237,23 +238,12 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		break;
 	case NAND_CMD_RESET:
 		break;
-	case NAND_CMD_READSTART:
-		addr_cycle = 0;
-		writel(0, NFC_REG_ADDR_LOW);
-		writel(0, NFC_REG_ADDR_HIGH);
-		data_fetch_flag = 1;
-		byte_count = 1024;
-		wait_rb_flag = 1;
-		break;
 	case NAND_CMD_RNDOUT:
 		addr_cycle = 2;
 		writel(column & 0xffff, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
-		break;
-	case NAND_CMD_RNDOUTSTART:
-		data_fetch_flag = 1;
-		byte_count = 1024;
-		wait_rb_flag = 1;
+		writel(0x30, NFC_REG_RCMD_SET);
+		cfg |= NFC_SEND_CMD2;
 		break;
 	default:
 		break;
@@ -320,12 +310,15 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 		dlen = mtd->writesize;
 		memset(page_buffer, 0, sizeof(page_buffer));
 		sunxi_nand_enable_random(page_addr);
-		for (i = 0; i < mtd->writesize / 1024 + 1; i++) {
-			do_nand_cmd(NAND_CMD_READ0, column, page_addr);
+		do_nand_cmd(NAND_CMD_READ0, column, page_addr);
+		for (j = 0; j < 1024; j++)
+			page_buffer[bufloc++] = nand->read_byte(mtd);
+		read_offset = 0;
+		for (i = 1; i < mtd->writesize / 1024 + 1; i++) {
+			do_nand_cmd(NAND_CMD_RNDOUT, column + i * 1024, page_addr);
 			for (j = 0; j < 1024; j++)
-				page_buffer[bufloc + j] = nand->read_byte(mtd);
+				page_buffer[bufloc++] = nand->read_byte(mtd);
 			read_offset = 0;
-			bufloc += 1024;
 		}
 		break;
 	}
