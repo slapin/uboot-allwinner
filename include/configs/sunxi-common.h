@@ -76,6 +76,7 @@
 #define CONFIG_CMD_NAND                         /* NAND support */
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
 #define CONFIG_SYS_NAND_BASE            0x00
+#define CONFIG_SYS_NAND_ONFI_DETECTION
 
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_SETEXPR
@@ -148,6 +149,8 @@
 #define CONFIG_ENV_OFFSET		((8 + 24 + 1024) << 10) /* (8 + 24 + 512)KB */
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KB */
 
+#if 0
+#define CONFIG_BOOTDELAY	3
 #define CONFIG_BOOTCOMMAND \
 	"if run loadbootenv; then " \
 		"echo Loaded environment from ${bootenv};" \
@@ -161,9 +164,11 @@
 		"echo Jumping to ${bootscr};" \
 		"source ${scriptaddr};" \
 	"fi;" \
-	"run setargs boot_mmc;" \
+	"run setargs boot_mmc;"
+#endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	"u-boot=loady 4a000000 && go 4a000000\0" \
 	"console=ttyS0,115200\0" \
 	"root=/dev/mmcblk0p2 rootwait\0" \
 	"panicarg=panic=10\0" \
@@ -185,7 +190,6 @@
 		" fatload mmc 0 0x48000000 ${kernel} &&" \
 		" watchdog 0 && bootm 0x48000000\0"
 
-#define CONFIG_BOOTDELAY	3
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
