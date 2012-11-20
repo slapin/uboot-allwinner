@@ -292,6 +292,7 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 		do_nand_cmd(command, column, page_addr);
 		break;
 	case NAND_CMD_READOOB:
+		printf("reading OOB\n");
 		memset(page_buffer, 0, sizeof(page_buffer));
 		do_nand_cmd(NAND_CMD_READ0, column + mtd->writesize, page_addr);
 		for (j = 0; j < 1024; j++)
