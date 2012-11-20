@@ -230,8 +230,9 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		addr_cycle = 2;
 		writel(column & 0xffff, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
-		writel(0x30, NFC_REG_RCMD_SET);
+		writel(0xE0, NFC_REG_RCMD_SET);
 		data_fetch_flag = 1;
+		wait_rb_flag = 0;
 		byte_count = 0x400;
 		cfg |= NFC_SEND_CMD2;
 		break;
@@ -248,8 +249,10 @@ static void do_nand_cmd(int command, int column, int page_addr)
 	if (data_fetch_flag) {
 		u32 ctl;
 		ctl = readl(NFC_REG_CTL);
-		clrbits_le32(cfg, NFC_RAM_METHOD);
-		writel(ctl, NFC_REG_CTL);
+		if (ctl & NFC_RAM_METHOD) {
+			clrbits_le32(cfg, NFC_RAM_METHOD);
+			writel(ctl, NFC_REG_CTL);
+		}
 		cfg |= NFC_DATA_TRANS;
 		writel(byte_count, NFC_REG_CNT);
 	}
