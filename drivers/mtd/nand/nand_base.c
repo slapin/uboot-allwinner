@@ -815,6 +815,7 @@ static int nand_wait(struct mtd_info *mtd, struct nand_chip *chip)
 static int nand_read_page_raw(struct mtd_info *mtd, struct nand_chip *chip,
 			      uint8_t *buf, int page)
 {
+	printf("pageno %d\n", page);
 	chip->read_buf(mtd, buf, mtd->writesize);
 	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
 	return 0;
@@ -880,6 +881,8 @@ static int nand_read_page_swecc(struct mtd_info *mtd, struct nand_chip *chip,
 	uint8_t *ecc_calc = chip->buffers->ecccalc;
 	uint8_t *ecc_code = chip->buffers->ecccode;
 	uint32_t *eccpos = chip->ecc.layout->eccpos;
+
+	printf("pageno %d\n", page);
 
 	chip->ecc.read_page_raw(mtd, chip, buf, page);
 
@@ -1213,6 +1216,9 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 
 	uint8_t *bufpoi, *oob, *buf;
 
+	printf("phys_erase_shift: %d page_shift %d\n",
+			chip->phys_erase_shift, chip->page_shift);
+
 	stats = mtd->ecc_stats;
 
 	chipnr = (int)(from >> chip->chip_shift);
@@ -1231,6 +1237,7 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 
 		bytes = min(mtd->writesize - col, readlen);
 		aligned = (bytes == mtd->writesize);
+		printf("zzz bytes: %d\n", bytes);
 
 		/* Is the current page in the buffer ? */
 		if (realpage != chip->pagebuf || oob) {
@@ -1347,6 +1354,7 @@ static int nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	struct nand_chip *chip = mtd->priv;
 	int ret;
 
+	printf("Reading NAND: offt %d len %d retlen %d\n", from, len, *retlen);
 	/* Do not allow reads past end of device */
 	if ((from + len) > mtd->size)
 		return -EINVAL;
@@ -1362,6 +1370,7 @@ static int nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	ret = nand_do_read_ops(mtd, from, &chip->ops);
 
 	*retlen = chip->ops.retlen;
+	printf("%d bytes read\n", *retlen);
 
 	nand_release_device(mtd);
 
@@ -2689,7 +2698,7 @@ static const struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		 * to decide what to do.
 		 */
 		if (id_data[0] == id_data[6] && id_data[1] == id_data[7] &&
-				id_data[0] == NAND_MFR_SAMSUNG &&
+				(id_data[0] == NAND_MFR_SAMSUNG || id_data[0] == NAND_MFR_HYNIX) &&
 				(chip->cellinfo & NAND_CI_CELLTYPE_MSK) &&
 				id_data[5] != 0x00) {
 			/* Calc pagesize */
