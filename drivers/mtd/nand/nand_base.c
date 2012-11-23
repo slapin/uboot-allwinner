@@ -1354,7 +1354,7 @@ static int nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 	struct nand_chip *chip = mtd->priv;
 	int ret;
 
-	debug("Reading NAND: offt %d len %d retlen %d\n", from, len, *retlen);
+	debug("Reading NAND: offt %lld len %d retlen %d\n", (long long)from, len, *retlen);
 	/* Do not allow reads past end of device */
 	if ((from + len) > mtd->size)
 		return -EINVAL;
@@ -2689,6 +2689,58 @@ static const struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		/* The 4th id byte is the important one */
 		extid = id_data[3];
 
+		/* Old Hynix flash chips
+		 *  H27UBG8T2BTR
+		 */
+		if (id_data[0] == id_data[6] && id_data[1] == id_data[7] &&
+				id_data[0] == NAND_MFR_HYNIX) {
+			/* Calc pagesize */
+			mtd->writesize = 2048 << (extid & 0x03);
+			extid >>= 2;
+			/* Calc oobsize */
+			switch (((extid >> 2) & 4) | (extid & 3)) {
+			case 0:
+				mtd->oobsize = 128;
+				break;
+			case 1:
+				mtd->oobsize = 224;
+				break;
+			case 2:
+				mtd->oobsize = 448;
+				break;
+			case 6:
+				mtd->oobsize = 488;
+				break;
+			default:
+				/* No idea what to set here. Fail? */
+				break;
+			}
+			extid >>= 2;
+			/* Calc blocksize */
+			switch (((extid >> 1) & 0x04) | (extid & 0x03)) {
+			case 0:
+				mtd->erasesize = (128 * 1024);
+				break;
+			case 1:
+				mtd->erasesize = (256 * 1024);
+				break;
+			case 2:
+				mtd->erasesize = (512 * 1024);
+				break;
+			case 3:
+				mtd->erasesize = (768 * 1024);
+				break;
+			case 4:
+				mtd->erasesize = (1024 * 1024);
+				break;
+			case 5:
+				mtd->erasesize = (2048 * 1024);
+				break;
+			default:
+				/* No idea what to set here. Fail? */
+				break;
+			}
+		}
 		/*
 		 * Field definitions are in the following datasheets:
 		 * Old style (4,5 byte ID): Samsung K9GAG08U0M (p.32)
@@ -2697,8 +2749,8 @@ static const struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		 * Check for wraparound + Samsung ID + nonzero 6th byte
 		 * to decide what to do.
 		 */
-		if (id_data[0] == id_data[6] && id_data[1] == id_data[7] &&
-				(id_data[0] == NAND_MFR_SAMSUNG || id_data[0] == NAND_MFR_HYNIX) &&
+		else if (id_data[0] == id_data[6] && id_data[1] == id_data[7] &&
+				id_data[0] == NAND_MFR_SAMSUNG &&
 				(chip->cellinfo & NAND_CI_CELLTYPE_MSK) &&
 				id_data[5] != 0x00) {
 			/* Calc pagesize */
