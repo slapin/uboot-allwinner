@@ -315,6 +315,9 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 			read_offset = 0;
 		}
 		break;
+	default:
+		debug("sunxi_nand_command: Unhandled command %02x!\n", command);
+		break;
 	}
 #if 0
 #if 0
