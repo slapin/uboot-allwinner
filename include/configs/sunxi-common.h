@@ -91,6 +91,7 @@
 #define CONFIG_CMDLINE_EDITING
 
 /* mmc config */
+#if 0
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
@@ -99,6 +100,9 @@
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT		/* env in which mmc */
+#endif
+
+#define CONFIG_ENV_IS_NOWHERE
 
 /*
  * Size of malloc() pool
@@ -217,7 +221,9 @@
 #define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
+#ifdef CONFIG_MMC
 #define CONFIG_SPL_MMC_SUPPORT
+#endif
 #define CONFIG_SPL_DISPLAY_PRINT
 
 /* end of 24KB in sram */
