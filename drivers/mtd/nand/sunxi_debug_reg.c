@@ -2,7 +2,7 @@
 static void debug_reg(const char *op, const char *regname, void *reg, uint32_t value)
 {
 	uint32_t v = value;
-	debug("%s %s=%08x", op, regname, value);
+	debug("%p %s %s %08x", reg, op, regname, value);
 #if 0
 #define BITS(name, mask, shift) if (mask == 1) debug(" %s%s",v&(mask<<shift)?"":"#", #name); else debug(" %s=%x", #name, (v>>shift)&mask); v&=~(mask<<shift)
 	switch((unsigned long)reg) {
