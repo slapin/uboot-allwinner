@@ -80,7 +80,7 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	gpio_free(gpio);
 
-	return value;
+	return 0;
 }
 
 U_BOOT_CMD(gpio, 3, 0, do_gpio,
