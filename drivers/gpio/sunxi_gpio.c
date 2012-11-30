@@ -71,9 +71,7 @@ int gpio_free(unsigned gpio)
 
 int gpio_direction_input(unsigned gpio)
 {
-	sunxi_gpio_set_cfgpin(gpio, SUNXI_GPIO_INPUT);
-
-	return sunxi_gpio_input(gpio);
+	return sunxi_gpio_set_cfgpin(gpio, SUNXI_GPIO_INPUT);
 }
 
 int gpio_direction_output(unsigned gpio, int value)
