@@ -607,13 +607,33 @@ int board_nand_init(struct nand_chip *nand)
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+static void sunxi_nand_set_random(int on)
+{
+	u32 ctl;
+	ctl = readl(NFC_REG_ECC_CTL);
+	if (on)
+		ctl &= ~NFC_RANDOM_EN;
+	else
+		ctl |= NFC_RANDOM_EN;
+	writel(ctl, NFC_REG_ECC_CTL);
+}
+
+>>>>>>> adding randomizer work placeholder
 static int do_switch_random(cmd_tbl_t * cmdtp, int flag, int argc,
 			char * const argv[])
 {
 	if (!strncmp("on", argv[1], 2))
+<<<<<<< HEAD
 		random_enabled = 1;
 	if (!strncmp("off", argv[1], 3))
 		random_enabled = 0;
+=======
+		sunxi_nand_set_random(1);
+	if (!strncmp("off", argv[1], 3))
+		sunxi_nand_set_random(0);
+>>>>>>> adding randomizer work placeholder
 	return 0;
 }
 
