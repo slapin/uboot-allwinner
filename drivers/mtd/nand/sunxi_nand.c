@@ -60,12 +60,21 @@
 #define NFC_REG_SPARE_AREA	0x01c030a0
 
 #define NFC_REG_CMD		0x01c03024
+#define NFC_ADR_NUM_OFFS	16
+#define NFC_ADR_NUM		(7 << NFC_ADR_NUM_OFFS)
 #define NFC_SEND_ADR		(1 << 19)
+#define NFC_ACCESS_DIR		(1 << 20)
 #define NFC_DATA_TRANS		(1 << 21)
 #define NFC_SEND_CMD1		(1 << 22)
 #define NFC_WAIT_FLAG		(1 << 23)
 #define NFC_SEND_CMD2		(1 << 24)
+#define NFC_SEQ			(1 << 25)
 #define NFC_DATA_SWAP_METHOD	(1 << 26)
+#define NFC_ROW_AUTO_INC	(1 << 27)
+#define NFC_SEND_CMD3		(1 << 28)
+#define NFC_SEND_CMD4		(1 << 29)
+#define NFC_CMD_TYPE_OFS	30
+#define NFC_CMD_TYPE		(3 << NFC_CMD_TYPE_OFS)
 
 #define NFC_REG_ADDR_LOW	0x01c03014
 #define NFC_REG_ADDR_HIGH	0x01c03018
@@ -84,7 +93,7 @@
 #define N_RANDOM_SEED		128
 static const uint16_t random_seed[N_RANDOM_SEED] = {
     //0        1      2       3        4      5        6       7       8       9
-	0x2b75, 0x0bd0, 0x5ca3, 0x62d1, 0x1c93, 0x07e9, 0x2162, 0x3a72, 0x0d67, 0x67f9, 
+	/*0x2b75*/ 0x4a80, 0x0bd0, 0x5ca3, 0x62d1, 0x1c93, 0x07e9, 0x2162, 0x3a72, 0x0d67, 0x67f9, 
     0x1be7, 0x077d, 0x032f, 0x0dac, 0x2716, 0x2436, 0x7922, 0x1510, 0x3860, 0x5287, 
     0x480f, 0x4252, 0x1789, 0x5a2d, 0x2a49, 0x5e10, 0x437f, 0x4b4e, 0x2f45, 0x216e, 
     0x5cb7, 0x7130, 0x2a3f, 0x60e4, 0x4dc9, 0x0ef0, 0x0f52, 0x1bb9, 0x6211, 0x7a56, 
@@ -98,11 +107,6 @@ static const uint16_t random_seed[N_RANDOM_SEED] = {
     0x42e6, 0x262b, 0x2d2e, 0x1aea, 0x2e17, 0x173d, 0x3a6e, 0x71bf, 0x25f9, 0x0a5d, 
     0x7c57, 0x0fbe, 0x46ce, 0x4939, 0x6b17, 0x37bb, 0x3e91, 0x76db 
 };
-
-static inline int32_t get_random_seed(int page)
-{
-	return (int32_t) random_seed[page % 128];
-}
 
 #include "sunxi_debug_reg.c"
 
@@ -118,6 +122,7 @@ static uint8_t sunxi_nand_read_byte(struct mtd_info *mtd)
 static void sunxi_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 {
 	int i;
+	debug("sunxi_nand_read_buf %p %p %d\n", mtd, buf, len);
 	memcpy(buf, &page_buffer[0], len);
 	read_offset = 0;
 	memset(page_buffer, 0, sizeof(page_buffer));
@@ -162,37 +167,19 @@ static int sunxi_nand_check_rb(int rb)
 	else
 		return 1;
 }
-static unsigned sunxi_nand_random_seed(int page)
-{
-	static const unsigned short random_seed[128] = {
-    0x2b75, 0x0bd0, 0x5ca3, 0x62d1, 0x1c93, 0x07e9, 0x2162, 0x3a72, 0x0d67, 0x67f9, 
-    0x1be7, 0x077d, 0x032f, 0x0dac, 0x2716, 0x2436, 0x7922, 0x1510, 0x3860, 0x5287, 
-    0x480f, 0x4252, 0x1789, 0x5a2d, 0x2a49, 0x5e10, 0x437f, 0x4b4e, 0x2f45, 0x216e, 
-    0x5cb7, 0x7130, 0x2a3f, 0x60e4, 0x4dc9, 0x0ef0, 0x0f52, 0x1bb9, 0x6211, 0x7a56, 
-    0x226d, 0x4ea7, 0x6f36, 0x3692, 0x38bf, 0x0c62, 0x05eb, 0x4c55, 0x60f4, 0x728c, 
-    0x3b6f, 0x2037, 0x7f69, 0x0936, 0x651a, 0x4ceb, 0x6218, 0x79f3, 0x383f, 0x18d9, 
-    0x4f05, 0x5c82, 0x2912, 0x6f17, 0x6856, 0x5938, 0x1007, 0x61ab, 0x3e7f, 0x57c2, 
-    0x542f, 0x4f62, 0x7454, 0x2eac, 0x7739, 0x42d4, 0x2f90, 0x435a, 0x2e52, 0x2064, 
-    0x637c, 0x66ad, 0x2c90, 0x0bad, 0x759c, 0x0029, 0x0986, 0x7126, 0x1ca7, 0x1605, 
-    0x386a, 0x27f5, 0x1380, 0x6d75, 0x24c3, 0x0f8e, 0x2b7a, 0x1418, 0x1fd1, 0x7dc1, 
-    0x2d8e, 0x43af, 0x2267, 0x7da3, 0x4e3d, 0x1338, 0x50db, 0x454d, 0x764d, 0x40a3, 
-    0x42e6, 0x262b, 0x2d2e, 0x1aea, 0x2e17, 0x173d, 0x3a6e, 0x71bf, 0x25f9, 0x0a5d, 
-    0x7c57, 0x0fbe, 0x46ce, 0x4939, 0x6b17, 0x37bb, 0x3e91, 0x76db 
-	};
 
-	return random_seed[page % 128 ];
-}
-
+static int random_enabled = 0;
 static void sunxi_nand_enable_random(int page)
 {
-#if RANDOMIZE_IO_DATA
 	u32 ctl = readl(NFC_REG_ECC_CTL);
 	ctl |= NFC_RANDOM_EN;
 	ctl &= ~NFC_RANDOM_DIRECTION;
 	ctl &= ~NFC_RANDOM_SEED;
-	ctl |= sunxi_nand_random_seed(page) << 16;
+	if (page == 0)
+		ctl |= random_seed[page % 128] << 16;
+	else
+		ctl |= (0x4a80 << 16);
 	writel(ctl, NFC_REG_ECC_CTL);
-#endif
 }
 
 static void sunxi_nand_disable_random(void)
@@ -211,10 +198,13 @@ static void do_nand_cmd(int command, int column, int page_addr)
 	int addr_cycle, wait_rb_flag, data_fetch_flag, byte_count;
 	addr_cycle = wait_rb_flag = data_fetch_flag = 0;
 	u32 cfg = command, ctl;
+	debug("do_nand_cmd cmd %02x column %02x page_addr %02x\n", command,
+		column, page_addr);
 	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
 	sunxi_nand_select_rb(0);
 	switch(command) {
 	case NAND_CMD_READ0:
+		debug("nand_cmd_read0\n");
 		addr_cycle = 5;
 		data_fetch_flag = 1;
 		byte_count = 1024;
@@ -230,7 +220,7 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		writel(ctl, NFC_REG_RCMD_SET);
 		cfg |= NFC_SEND_CMD2;
 		clrsetbits_le32(cfg, (3<< 30), (2 << 30)); /* page command */
-		writel(8, NFC_REG_SECTOR_NUM);
+		writel(1, NFC_REG_SECTOR_NUM);
 		break;
 	case NAND_CMD_PARAM:
 		writel(column, NFC_REG_ADDR_LOW);
@@ -250,6 +240,7 @@ static void do_nand_cmd(int command, int column, int page_addr)
 	case NAND_CMD_RESET:
 		break;
 	case NAND_CMD_RNDOUT:
+		debug("nand_cmd_rndout\n");
 		addr_cycle = 2;
 		writel(column & 0xffff, NFC_REG_ADDR_LOW);
 		writel(0, NFC_REG_ADDR_HIGH);
@@ -288,6 +279,7 @@ static void do_nand_cmd(int command, int column, int page_addr)
 	writel(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG, NFC_REG_ST);
 	switch(command) {
 	case NAND_CMD_RESET:
+		debug("nand_cmd_reset\n");
 		/*wait rb0 ready*/
 		sunxi_nand_select_rb(0);
 		while(sunxi_nand_check_rb(0));
@@ -326,8 +318,11 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 		bufloc = 0;
 		dlen = mtd->writesize;
 		memset(page_buffer, 0, sizeof(page_buffer));
-		sunxi_nand_enable_random(page_addr);
+		if (random_enabled)
+			sunxi_nand_enable_random(page_addr);
 		do_nand_cmd(NAND_CMD_READ0, column, page_addr);
+		if (random_enabled)
+			sunxi_nand_disable_random();
 		for (j = 0; j < 1024; j++)
 			page_buffer[bufloc++] = nand->read_byte(mtd);
 		read_offset = 0;
@@ -486,24 +481,13 @@ int board_nand_init(struct nand_chip *nand)
 	return 0;
 }
 
-static void sunxi_nand_set_random(int on)
-{
-	u32 ctl;
-	ctl = readl(NFC_REG_ECC_CTL);
-	if (on)
-		ctl &= ~NFC_RANDOM_EN;
-	else
-		ctl |= NFC_RANDOM_EN;
-	writel(ctl, NFC_REG_ECC_CTL);
-}
-
 static int do_switch_random(cmd_tbl_t * cmdtp, int flag, int argc,
 			char * const argv[])
 {
 	if (!strncmp("on", argv[1], 2))
-		sunxi_nand_set_random(1);
+		random_enabled = 1;
 	if (!strncmp("off", argv[1], 3))
-		sunxi_nand_set_random(0);
+		random_enabled = 0;
 	return 0;
 }
 
