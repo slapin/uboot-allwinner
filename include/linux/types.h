@@ -151,4 +151,6 @@ struct ustat {
 	char			f_fpack[6];
 };
 
+typedef phys_addr_t resource_size_t;
+
 #endif /* _LINUX_TYPES_H */
