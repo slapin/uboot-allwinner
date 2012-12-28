@@ -55,17 +55,17 @@ extern nand_info_t nand_info[];
 
 static inline int nand_read(nand_info_t *info, loff_t ofs, size_t *len, u_char *buf)
 {
-	return info->read(info, ofs, *len, (size_t *)len, buf);
+	return mtd_read(info, ofs, *len, (size_t *)len, buf);
 }
 
 static inline int nand_write(nand_info_t *info, loff_t ofs, size_t *len, u_char *buf)
 {
-	return info->write(info, ofs, *len, (size_t *)len, buf);
+	return mtd_write(info, ofs, *len, (size_t *)len, buf);
 }
 
 static inline int nand_block_isbad(nand_info_t *info, loff_t ofs)
 {
-	return info->block_isbad(info, ofs);
+	return mtd_block_isbad(info, ofs);
 }
 
 static inline int nand_erase(nand_info_t *info, loff_t off, size_t size)
@@ -77,7 +77,7 @@ static inline int nand_erase(nand_info_t *info, loff_t off, size_t size)
 	instr.len = size;
 	instr.callback = 0;
 
-	return info->erase(info, &instr);
+	return mtd_erase(info, &instr);
 }
 
 
@@ -143,9 +143,6 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts);
 #define NAND_LOCK_STATUS_TIGHT	0x01
 #define NAND_LOCK_STATUS_UNLOCK 0x04
 
-int nand_lock(nand_info_t *meminfo, int tight);
-int nand_unlock(nand_info_t *meminfo, loff_t start, size_t length,
-	int allexcept);
 int nand_get_lock_status(nand_info_t *meminfo, loff_t offset);
 
 int nand_spl_load_image(uint32_t offs, unsigned int size, void *dst);
