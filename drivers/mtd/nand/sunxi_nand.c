@@ -46,7 +46,9 @@
 #define NFC_ECC_BLOCK_SIZE	(1 << 5)
 #define NFC_RANDOM_EN		(1 << 9)
 #define NFC_RANDOM_DIRECTION	(1 << 10)
-#define NFC_ECC_MODE		(0xf << 12)
+#define NFC_ECC_MODE_OFS	12
+#define NFC_ECC_MODE		(0xf << NFC_ECC_MODE_OFS)
+#define NFC_ECC_MODE_1		(1 << NFC_ECC_MODE_OFS)
 #define NFC_RANDOM_SEED		(0x7fff << 16)
 
 #define NFC_REG_ST		0x01c03004
@@ -75,6 +77,9 @@
 #define NFC_SEND_CMD4		(1 << 29)
 #define NFC_CMD_TYPE_OFS	30
 #define NFC_CMD_TYPE		(3 << NFC_CMD_TYPE_OFS)
+
+#define NFC_CMD_TYPE_ECC	(1 << NFC_CMD_TYPE_OFS)
+#define NFC_CMD_TYPE_PAGE	(2 << NFC_CMD_TYPE_OFS)
 
 #define NFC_REG_ADDR_LOW	0x01c03014
 #define NFC_REG_ADDR_HIGH	0x01c03018
@@ -193,6 +198,39 @@ static void sunxi_nand_disable_random(void)
  * column - address within page
  * page_addr = page number (row)*/
 
+static void do_ecc_read_seq(void)
+{
+	u32 cfg = NFC_CMD_TYPE_ECC;
+	cfg |= NFC_SEQ;
+	cfg |= NFC_WAIT_FLAG;
+	cfg |= NFC_DATA_TRANS;
+	writel(cfg, NFC_REG_CMD);
+}
+
+static void do_wait_ready(void)
+{
+	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
+	/* Waiting for interrupt flag to be set */
+	while(!(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG));
+	/* Clearing interrupt if any */
+	writel(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG, NFC_REG_ST);
+}
+
+static void sunxi_nand_ecc_set(int on)
+{
+	u32 cfg = readl(NFC_REG_ECC_CTL);
+	if (on) {
+		cfg |= NFC_ECC_EN;
+		cfg |= NFC_ECC_PIPELINE;
+		cfg |= NFC_ECC_MODE_1;
+	} else {
+		cfg &= ~NFC_ECC_EN;
+		cfg &= ~NFC_ECC_PIPELINE;
+		cfg &= ~NFC_ECC_MODE_1;
+	}
+	writel(cfg, NFC_REG_ECC_CTL);
+}
+
 static void do_nand_cmd(int command, int column, int page_addr)
 {
 	int addr_cycle, wait_rb_flag, data_fetch_flag, byte_count;
@@ -219,8 +257,10 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		ctl |= 0xe0 << 16;
 		writel(ctl, NFC_REG_RCMD_SET);
 		cfg |= NFC_SEND_CMD2;
-		clrsetbits_le32(cfg, (3<< 30), (2 << 30)); /* page command */
+		clrsetbits_le32(cfg, (NFC_CMD_TYPE), (NFC_CMD_TYPE_PAGE)); /* page command */
 		writel(1, NFC_REG_SECTOR_NUM);
+		cfg |= NFC_SEQ;
+
 		break;
 	case NAND_CMD_PARAM:
 		writel(column, NFC_REG_ADDR_LOW);
@@ -249,6 +289,7 @@ static void do_nand_cmd(int command, int column, int page_addr)
 		wait_rb_flag = 0;
 		byte_count = 0x400;
 		cfg |= NFC_SEND_CMD2;
+		cfg |= NFC_SEQ;
 		break;
 	default:
 		break;
@@ -272,11 +313,7 @@ static void do_nand_cmd(int command, int column, int page_addr)
 	}
 	cfg |= NFC_SEND_CMD1;
 	writel(cfg, NFC_REG_CMD);
-	while(readl(NFC_REG_ST) & NFC_CMD_FIFO_STATUS);
-	/* Waiting for interrupt flag to be set */
-	while(!(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG));
-	/* Clearing interrupt if any */
-	writel(readl(NFC_REG_ST) & NFC_CMD_INT_FLAG, NFC_REG_ST);
+	do_wait_ready();
 	switch(command) {
 	case NAND_CMD_RESET:
 		debug("nand_cmd_reset\n");
@@ -321,13 +358,17 @@ static void sunxi_nand_command(struct mtd_info *mtd, unsigned command,
 		if (random_enabled)
 			sunxi_nand_enable_random(page_addr);
 		do_nand_cmd(NAND_CMD_READ0, column, page_addr);
+		do_ecc_read_seq();
+		do_wait_ready();
 		if (random_enabled)
 			sunxi_nand_disable_random();
 		for (j = 0; j < 1024; j++)
 			page_buffer[bufloc++] = nand->read_byte(mtd);
 		read_offset = 0;
 		for (i = 1; i < mtd->writesize / 1024 + 1; i++) {
-			do_nand_cmd(NAND_CMD_RNDOUT, column + i * 1024, page_addr);
+			do_nand_cmd(NAND_CMD_RNDOUT, column + i * 1070, page_addr);
+			do_ecc_read_seq();
+			do_wait_ready();
 			for (j = 0; j < 1024; j++)
 				page_buffer[bufloc++] = nand->read_byte(mtd);
 			read_offset = 0;
