@@ -480,131 +480,6 @@ static void sunxi_nand_set_clock(int hz)
 	debug("NAND Clock: PLL5=%dHz, divid_ratio=%d, n=%d m=%d, clock=%dHz (target %dHz\n", clock, nand_clk_divid_ratio, div_n, div_m, (clock>>div_n)/(div_m+1), hz);
 }
 
-/* This is reduced copy-paste of nand_base.c code of NAND params detection
- * specifically reduced for Allwinner NAND controller
- */
-static int sunxi_nand_init_size(struct mtd_info *mtd, struct nand_chip *chip,
-			u8 *id_data)
-{
-		int extid, busw;
-		/* The 3rd id byte holds MLC / multichip data */
-		chip->cellinfo = id_data[2];
-		/* The 4th id byte is the important one */
-		extid = id_data[3];
-
-		/* Old Hynix flash chips
-		 *  H27UBG8T2BTR
-		 */
-		if (id_data[0] == id_data[6] && id_data[1] == id_data[7] &&
-				id_data[0] == NAND_MFR_HYNIX) {
-			/* Calc pagesize */
-			mtd->writesize = 2048 << (extid & 0x03);
-			extid >>= 2;
-			/* Calc oobsize */
-			switch (((extid >> 2) & 4) | (extid & 3)) {
-			case 0:
-				mtd->oobsize = 128;
-				break;
-			case 1:
-				mtd->oobsize = 224;
-				break;
-			case 2:
-				mtd->oobsize = 448;
-				break;
-			case 6:
-				mtd->oobsize = 488;
-				break;
-			default:
-				/* No idea what to set here. Fail? */
-				break;
-			}
-			extid >>= 2;
-			/* Calc blocksize */
-			switch (((extid >> 1) & 0x04) | (extid & 0x03)) {
-			case 0:
-				mtd->erasesize = (128 * 1024);
-				break;
-			case 1:
-				mtd->erasesize = (256 * 1024);
-				break;
-			case 2:
-				mtd->erasesize = (512 * 1024);
-				break;
-			case 3:
-				mtd->erasesize = (768 * 1024);
-				break;
-			case 4:
-				mtd->erasesize = (1024 * 1024);
-				break;
-			case 5:
-				mtd->erasesize = (2048 * 1024);
-				break;
-			default:
-				/* No idea what to set here. Fail? */
-				break;
-			}
-		}
-		/*
-		 * Field definitions are in the following datasheets:
-		 * Old style (4,5 byte ID): Samsung K9GAG08U0M (p.32)
-		 * New style   (6 byte ID): Samsung K9GBG08U0M (p.40)
-		 *
-		 * Check for wraparound + Samsung ID + nonzero 6th byte
-		 * to decide what to do.
-		 */
-		else if (id_data[0] == id_data[6] && id_data[1] == id_data[7] &&
-				id_data[0] == NAND_MFR_SAMSUNG &&
-				(chip->cellinfo & NAND_CI_CELLTYPE_MSK) &&
-				id_data[5] != 0x00) {
-			/* Calc pagesize */
-			mtd->writesize = 2048 << (extid & 0x03);
-			extid >>= 2;
-			/* Calc oobsize */
-			debug("OOB size: %d 0x%02x\n", extid & 0x0b, id_data[3]);
-			switch (((extid >> 2) & 0x04) | (extid & 0x03)) {
-			case 1:
-				mtd->oobsize = 128;
-				break;
-			case 2:
-				mtd->oobsize = 218;
-				break;
-			case 3:
-				mtd->oobsize = 400;
-				break;
-			case 4:
-				mtd->oobsize = 436;
-				break;
-			case 5:
-				mtd->oobsize = 512;
-				break;
-			case 6:
-			default:
-				mtd->oobsize = 640;
-				break;
-			}
-			extid >>= 2;
-			/* Calc blocksize */
-			mtd->erasesize = (128 * 1024) <<
-				(((extid >> 1) & 0x04) | (extid & 0x03));
-			busw = 0;
-		} else {
-			/* For normal NAND flashes */
-			/* Calc pagesize */
-			mtd->writesize = 1024 << (extid & 0x03);
-			extid >>= 2;
-			/* Calc oobsize */
-			mtd->oobsize = (8 << (extid & 0x01)) *
-				(mtd->writesize >> 9);
-			extid >>= 2;
-			/* Calc blocksize. Blocksize is multiples of 64KiB */
-			mtd->erasesize = (64 * 1024) << (extid & 0x03);
-			extid >>= 2;
-			/* Get buswidth information */
-			busw = (extid & 0x01) ? NAND_BUSWIDTH_16 : 0;
-		}
-	return busw;
-}
-
 int board_nand_init(struct nand_chip *nand)
 {
 	u32 ctl;
@@ -644,7 +519,11 @@ int board_nand_init(struct nand_chip *nand)
 	nand->IO_ADDR_R = NFC_RAM0_BASE + 8;
 	nand->IO_ADDR_W = NFC_RAM0_BASE + 8;
 	nand->read_byte = sunxi_nand_read_byte;
-	nand->init_size = sunxi_nand_init_size;
+	/* We should define to support proper routines
+	 * nand->ecc.layout = &nand_oob_xx;
+	 * chip->ecc.read_page_raw
+	*/
+	sunxi_nand_ecc_set(1);
 	return 0;
 }
 
