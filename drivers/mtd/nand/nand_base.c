@@ -151,6 +151,7 @@ static int check_offs_len(struct mtd_info *mtd,
  * @mtd: MTD device structure
  *
  * Release chip lock and wake up anyone waiting on the device.
+ * U-Boot: just de-select the device
  */
 static void nand_release_device(struct mtd_info *mtd)
 {
