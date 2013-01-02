@@ -70,6 +70,7 @@ typedef struct mtd_info	  mtd_info_t;
  */
 int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 {
+	struct mtd_oob_ops ops;
 	struct jffs2_unknown_node cleanmarker;
 	erase_info_t erase;
 	unsigned long erase_length, erased_length; /* in blocks */
@@ -121,7 +122,7 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 		WATCHDOG_RESET ();
 
 		if (!opts->scrub && bbtest) {
-			int ret = meminfo->block_isbad(meminfo, erase.addr);
+			int ret = mtd_block_isbad(meminfo, erase.addr);
 			if (ret > 0) {
 				if (!opts->quiet)
 					printf("\rSkipping bad block at  "
@@ -144,7 +145,7 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 
 		erased_length++;
 
-		result = meminfo->erase(meminfo, &erase);
+		result = mtd_erase(meminfo, &erase);
 		if (result != 0) {
 			printf("\n%s: MTD Erase failure: %d\n",
 			       mtd_device, result);
@@ -153,15 +154,15 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 
 		/* format for JFFS2 ? */
 		if (opts->jffs2 && chip->ecc.layout->oobavail >= 8) {
-			chip->ops.ooblen = 8;
-			chip->ops.datbuf = NULL;
-			chip->ops.oobbuf = (uint8_t *)&cleanmarker;
-			chip->ops.ooboffs = 0;
-			chip->ops.mode = MTD_OOB_AUTO;
+			ops.ooblen = 8;
+			ops.datbuf = NULL;
+			ops.oobbuf = (uint8_t *)&cleanmarker;
+			ops.ooboffs = 0;
+			ops.mode = MTD_OPS_AUTO_OOB;
 
-			result = meminfo->write_oob(meminfo,
+			result = mtd_write_oob(meminfo,
 			                            erase.addr,
-			                            &chip->ops);
+						    &ops);
 			if (result != 0) {
 				printf("\n%s: MTD writeoob failure: %d\n",
 				       mtd_device, result);
