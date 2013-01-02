@@ -8,7 +8,6 @@
  * published by the Free Software Foundation.
  *
  */
-
 #include <common.h>
 #include <linux/mtd/nand.h>
 /*
@@ -22,7 +21,7 @@
 +	256	256 Byte page size
 *	512	512 Byte page size
 */
-const struct nand_flash_dev nand_flash_ids[] = {
+struct nand_flash_dev nand_flash_ids[] = {
 
 #ifdef CONFIG_MTD_NAND_MUSEUM_IDS
 	{"NAND 1MiB 5V 8-bit",		0x6e, 256, 1, 0x1000, 0},
@@ -31,7 +30,7 @@ const struct nand_flash_dev nand_flash_ids[] = {
 	{"NAND 1MiB 3,3V 8-bit",	0xe8, 256, 1, 0x1000, 0},
 	{"NAND 1MiB 3,3V 8-bit",	0xec, 256, 1, 0x1000, 0},
 	{"NAND 2MiB 3,3V 8-bit",	0xea, 256, 2, 0x1000, 0},
-	{"NAND 4MiB 3,3V 8-bit", 	0xd5, 512, 4, 0x2000, 0},
+	{"NAND 4MiB 3,3V 8-bit",	0xd5, 512, 4, 0x2000, 0},
 	{"NAND 4MiB 3,3V 8-bit",	0xe3, 512, 4, 0x2000, 0},
 	{"NAND 4MiB 3,3V 8-bit",	0xe5, 512, 4, 0x2000, 0},
 	{"NAND 8MiB 3,3V 8-bit",	0xd6, 512, 8, 0x2000, 0},
@@ -71,14 +70,15 @@ const struct nand_flash_dev nand_flash_ids[] = {
 	 * These are the new chips with large page size. The pagesize and the
 	 * erasesize is determined from the extended id bytes
 	 */
-#define LP_OPTIONS (NAND_SAMSUNG_LP_OPTIONS | NAND_NO_READRDY | NAND_NO_AUTOINCR)
+#define LP_OPTIONS NAND_SAMSUNG_LP_OPTIONS
 #define LP_OPTIONS16 (LP_OPTIONS | NAND_BUSWIDTH_16)
 
-	/*512 Megabit */
+	/* 512 Megabit */
 	{"NAND 64MiB 1,8V 8-bit",	0xA2, 0,  64, 0, LP_OPTIONS},
 	{"NAND 64MiB 1,8V 8-bit",	0xA0, 0,  64, 0, LP_OPTIONS},
 	{"NAND 64MiB 3,3V 8-bit",	0xF2, 0,  64, 0, LP_OPTIONS},
 	{"NAND 64MiB 3,3V 8-bit",	0xD0, 0,  64, 0, LP_OPTIONS},
+	{"NAND 64MiB 3,3V 8-bit",	0xF0, 0,  64, 0, LP_OPTIONS},
 	{"NAND 64MiB 1,8V 16-bit",	0xB2, 0,  64, 0, LP_OPTIONS16},
 	{"NAND 64MiB 1,8V 16-bit",	0xB0, 0,  64, 0, LP_OPTIONS16},
 	{"NAND 64MiB 3,3V 16-bit",	0xC2, 0,  64, 0, LP_OPTIONS16},
@@ -157,9 +157,7 @@ const struct nand_flash_dev nand_flash_ids[] = {
 	 * writes possible, but not implemented now
 	 */
 	{"AND 128MiB 3,3V 8-bit",	0x01, 2048, 128, 0x4000,
-	 NAND_IS_AND | NAND_NO_AUTOINCR |NAND_NO_READRDY | NAND_4PAGE_ARRAY |
-	 BBT_AUTO_REFRESH
-	},
+	 NAND_IS_AND | NAND_4PAGE_ARRAY | BBT_AUTO_REFRESH},
 
 	{NULL,}
 };
@@ -167,7 +165,7 @@ const struct nand_flash_dev nand_flash_ids[] = {
 /*
 *	Manufacturer ID list
 */
-const struct nand_manufacturers nand_manuf_ids[] = {
+struct nand_manufacturers nand_manuf_ids[] = {
 	{NAND_MFR_TOSHIBA, "Toshiba"},
 	{NAND_MFR_SAMSUNG, "Samsung"},
 	{NAND_MFR_FUJITSU, "Fujitsu"},
@@ -176,6 +174,9 @@ const struct nand_manufacturers nand_manuf_ids[] = {
 	{NAND_MFR_STMICRO, "ST Micro"},
 	{NAND_MFR_HYNIX, "Hynix"},
 	{NAND_MFR_MICRON, "Micron"},
-	{NAND_MFR_AMD, "AMD"},
+	{NAND_MFR_AMD, "AMD/Spansion"},
+	{NAND_MFR_MACRONIX, "Macronix"},
+	{NAND_MFR_EON, "Eon"},
 	{0x0, "Unknown"}
 };
+
