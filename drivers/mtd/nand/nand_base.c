@@ -151,7 +151,7 @@ static int check_offs_len(struct mtd_info *mtd,
  * nand_release_device - [GENERIC] release chip
  * @mtd: MTD device structure
  *
- * Release chip lock and wake up anyone waiting on the device.
+ * Deselect, release chip lock and wake up anyone waiting on the device.
  */
 static void nand_release_device(struct mtd_info *mtd)
 {
@@ -174,7 +174,7 @@ static uint8_t nand_read_byte(struct mtd_info *mtd)
 }
 
 /**
- * nand_read_byte16 - [DEFAULT] read one byte endianness aware from the chip
+ * nand_read_byte16 - [DEFAULT] read one byte endianess aware from the chip
  * @mtd: MTD device structure
  *
  * Default read function for 16bit buswidth with endianness conversion.
@@ -736,6 +736,7 @@ static void panic_nand_get_device(struct nand_chip *chip,
 
 /**
  * nand_get_device - [GENERIC] Get chip for selected access
+ * @chip: the nand chip descriptor
  * @mtd: MTD device structure
  * @new_state: the state which is requested
  *
@@ -2644,6 +2645,7 @@ erase_exit:
 static void nand_sync(struct mtd_info *mtd)
 {
 	struct nand_chip *chip = mtd->priv;
+
 	MTDDEBUG(MTD_DEBUG_LEVEL0,
 			"%s: called\n", __func__);
 
