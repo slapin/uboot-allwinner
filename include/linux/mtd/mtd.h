@@ -205,33 +205,6 @@ struct mtd_info {
 	int usecount;
 };
 
-/*
- * Erase is an asynchronous operation.  Device drivers are supposed
- * to call instr->callback() whenever the operation completes, even
- * if it completes with a failure.
- * Callers are supposed to pass a callback function and wait for it
- * to be called before writing to the block.
- */
-static inline int mtd_erase(struct mtd_info *mtd, struct erase_info *instr)
-{
-	return mtd->_erase(mtd, instr);
-}
-
-static inline int mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
-			   size_t *retlen, u_char *buf)
-{
-	return mtd->_read(mtd, from, len, retlen, buf);
-}
-
-static inline int mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
-			    size_t *retlen, const u_char *buf)
-{
-	*retlen = 0;
-	if (!mtd->_write)
-		return -EROFS;
-	return mtd->_write(mtd, to, len, retlen, buf);
-}
-
 static inline int mtd_read_oob(struct mtd_info *mtd, loff_t from,
 			       struct mtd_oob_ops *ops)
 {
@@ -240,6 +213,13 @@ static inline int mtd_read_oob(struct mtd_info *mtd, loff_t from,
 		return -EOPNOTSUPP;
 	return mtd->_read_oob(mtd, from, ops);
 }
+int mtd_erase(struct mtd_info *mtd, struct erase_info *instr);
+int mtd_read(struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen,
+	     u_char *buf);
+int mtd_write(struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen,
+	      const u_char *buf);
+int mtd_panic_write(struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen,
+		    const u_char *buf);
 
 static inline int mtd_write_oob(struct mtd_info *mtd, loff_t to,
 				struct mtd_oob_ops *ops)
@@ -321,34 +301,11 @@ static inline void mtd_sync(struct mtd_info *mtd)
 		mtd->_sync(mtd);
 }
 
-/* Chip-supported device locking */
-static inline int mtd_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
-{
-	if (!mtd->_lock)
-		return -EOPNOTSUPP;
-	return mtd->_lock(mtd, ofs, len);
-}
-
-static inline int mtd_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len)
-{
-	if (!mtd->_unlock)
-		return -EOPNOTSUPP;
-	return mtd->_unlock(mtd, ofs, len);
-}
-
-static inline int mtd_block_isbad(struct mtd_info *mtd, loff_t ofs)
-{
-	if (!mtd->_block_isbad)
-		return -EOPNOTSUPP;
-	return mtd->_block_isbad(mtd, ofs);
-}
-
-static inline int mtd_block_markbad(struct mtd_info *mtd, loff_t ofs)
-{
-	if (!mtd->_block_markbad)
-		return -EOPNOTSUPP;
-	return mtd->_block_markbad(mtd, ofs);
-}
+int mtd_lock(struct mtd_info *mtd, loff_t ofs, uint64_t len);
+int mtd_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t len);
+int mtd_is_locked(struct mtd_info *mtd, loff_t ofs, uint64_t len);
+int mtd_block_isbad(struct mtd_info *mtd, loff_t ofs);
+int mtd_block_markbad(struct mtd_info *mtd, loff_t ofs);
 
 static inline uint32_t mtd_div_by_eb(uint64_t sz, struct mtd_info *mtd)
 {
