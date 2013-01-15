@@ -341,6 +341,7 @@ void fsmc_enable_hwecc(struct mtd_info *mtd, int mode)
  * @mtd:	mtd info structure
  * @chip:	nand chip info structure
  * @buf:	buffer to store read data
+ * @oob_required:	caller expects OOB data read to chip->oob_poi
  * @page:	page number to read
  *
  * This routine is needed for fsmc verison 8 as reading from NAND chip has to be
@@ -350,7 +351,7 @@ void fsmc_enable_hwecc(struct mtd_info *mtd, int mode)
  * max of 8 bits)
  */
 static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
-				 uint8_t *buf, int page)
+				 uint8_t *buf, int oob_required, int page)
 {
 	struct fsmc_eccplace *fsmc_eccpl;
 	int i, j, s, stat, eccsize = chip->ecc.size;

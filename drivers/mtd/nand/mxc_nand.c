@@ -380,7 +380,7 @@ static void mxc_nand_enable_hwecc(struct mtd_info *mtd, int mode)
 #ifdef MXC_NFC_V2_1
 static int mxc_nand_read_oob_syndrome(struct mtd_info *mtd,
 				      struct nand_chip *chip,
-				      int page, int sndcmd)
+				      int page)
 {
 	struct mxc_nand_host *host = chip->priv;
 	uint8_t *buf = chip->oob_poi;
@@ -434,6 +434,7 @@ static int mxc_nand_read_oob_syndrome(struct mtd_info *mtd,
 static int mxc_nand_read_page_raw_syndrome(struct mtd_info *mtd,
 					   struct nand_chip *chip,
 					   uint8_t *buf,
+					   int oob_required,
 					   int page)
 {
 	struct mxc_nand_host *host = chip->priv;
@@ -478,6 +479,7 @@ static int mxc_nand_read_page_raw_syndrome(struct mtd_info *mtd,
 static int mxc_nand_read_page_syndrome(struct mtd_info *mtd,
 				       struct nand_chip *chip,
 				       uint8_t *buf,
+				       int oob_required,
 				       int page)
 {
 	struct mxc_nand_host *host = chip->priv;
@@ -567,9 +569,10 @@ static int mxc_nand_write_oob_syndrome(struct mtd_info *mtd,
 	return status & NAND_STATUS_FAIL ? -EIO : 0;
 }
 
-static void mxc_nand_write_page_raw_syndrome(struct mtd_info *mtd,
+static int mxc_nand_write_page_raw_syndrome(struct mtd_info *mtd,
 					     struct nand_chip *chip,
-					     const uint8_t *buf)
+					     const uint8_t *buf,
+					     int oob_required)
 {
 	struct mxc_nand_host *host = chip->priv;
 	int eccsize = chip->ecc.size;
@@ -603,11 +606,13 @@ static void mxc_nand_write_page_raw_syndrome(struct mtd_info *mtd,
 	size = mtd->oobsize - (oob - chip->oob_poi);
 	if (size)
 		chip->write_buf(mtd, oob, size);
+	return 0;
 }
 
-static void mxc_nand_write_page_syndrome(struct mtd_info *mtd,
+static int mxc_nand_write_page_syndrome(struct mtd_info *mtd,
 					 struct nand_chip *chip,
-					 const uint8_t *buf)
+					 const uint8_t *buf,
+					 int oob_required)
 {
 	struct mxc_nand_host *host = chip->priv;
 	int i, n, eccsize = chip->ecc.size;
@@ -646,6 +651,7 @@ static void mxc_nand_write_page_syndrome(struct mtd_info *mtd,
 	i = mtd->oobsize - (oob - chip->oob_poi);
 	if (i)
 		chip->write_buf(mtd, oob, i);
+	return 0;
 }
 
 static int mxc_nand_correct_data(struct mtd_info *mtd, u_char *dat,
@@ -1172,7 +1178,7 @@ int board_nand_init(struct nand_chip *this)
 #endif
 
 #ifdef CONFIG_SYS_NAND_USE_FLASH_BBT
-	this->options |= NAND_USE_FLASH_BBT;
+	this->bbt_options |= NAND_BBT_USE_FLASH;
 	this->bbt_td = &bbt_main_descr;
 	this->bbt_md = &bbt_mirror_descr;
 #endif

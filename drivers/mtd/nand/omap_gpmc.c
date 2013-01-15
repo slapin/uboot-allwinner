@@ -344,7 +344,7 @@ int board_nand_init(struct nand_chip *nand)
 	nand->IO_ADDR_W = (void __iomem *)&gpmc_cfg->cs[cs].nand_cmd;
 
 	nand->cmd_ctrl = omap_nand_hwcontrol;
-	nand->options = NAND_NO_PADDING | NAND_CACHEPRG | NAND_NO_AUTOINCR;
+	nand->options = NAND_NO_PADDING | NAND_CACHEPRG;
 	/* If we are 16 bit dev, our gpmc config tells us that */
 	if ((readl(&gpmc_cfg->cs[cs].config1) & 0x3000) == 0x1000)
 		nand->options |= NAND_BUSWIDTH_16;

@@ -640,9 +640,8 @@ static int fsl_elbc_wait(struct mtd_info *mtd, struct nand_chip *chip)
 	return fsl_elbc_read_byte(mtd);
 }
 
-static int fsl_elbc_read_page(struct mtd_info *mtd,
-			      struct nand_chip *chip,
-			      uint8_t *buf, int page)
+static int fsl_elbc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
+			      uint8_t *buf, int oob_required, int page)
 {
 	fsl_elbc_read_buf(mtd, buf, mtd->writesize);
 	fsl_elbc_read_buf(mtd, chip->oob_poi, mtd->oobsize);
@@ -656,12 +655,13 @@ static int fsl_elbc_read_page(struct mtd_info *mtd,
 /* ECC will be calculated automatically, and errors will be detected in
  * waitfunc.
  */
-static void fsl_elbc_write_page(struct mtd_info *mtd,
-				struct nand_chip *chip,
-				const uint8_t *buf)
+static int fsl_elbc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
+				const uint8_t *buf, int oob_required)
 {
 	fsl_elbc_write_buf(mtd, buf, mtd->writesize);
 	fsl_elbc_write_buf(mtd, chip->oob_poi, mtd->oobsize);
+
+	return 0;
 }
 
 static struct fsl_elbc_ctrl *elbc_ctrl;
@@ -747,8 +747,8 @@ static int fsl_elbc_chip_init(int devnum, u8 *addr)
 	nand->bbt_md = &bbt_mirror_descr;
 
   	/* set up nand options */
-	nand->options = NAND_NO_READRDY | NAND_NO_AUTOINCR |
-			NAND_USE_FLASH_BBT;
+	nand->options = NAND_NO_SUBPAGE_WRITE;
+	nand->bbt_options = NAND_USE_FLASH_BBT;
 
 	nand->controller = &elbc_ctrl->controller;
 	nand->priv = priv;

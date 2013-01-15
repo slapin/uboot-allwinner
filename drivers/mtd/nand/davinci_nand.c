@@ -607,7 +607,7 @@ void davinci_nand_init(struct nand_chip *nand)
 {
 	nand->chip_delay  = 0;
 #ifdef CONFIG_SYS_NAND_USE_FLASH_BBT
-	nand->options	  |= NAND_USE_FLASH_BBT;
+	nand->bbt_options	  |= NAND_BBT_USE_FLASH;
 #endif
 #ifdef CONFIG_SYS_NAND_HW_ECC
 	nand->ecc.mode = NAND_ECC_HW;
