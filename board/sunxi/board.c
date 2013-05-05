@@ -114,4 +114,13 @@ void spl_display_print(void)
 }
 #endif
 
+#ifdef CONFIG_SPL_OS_BOOT
+int spl_start_uboot(void)
+{
+	// start uboot when console has input
+	udelay(10);
+	return tstc();
+}
+#endif
+
 #endif
