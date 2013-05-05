@@ -167,7 +167,7 @@ bad:
 	return err;
 }
 
-static int ubi_create_vol(char *volume, int size, int dynamic)
+static int ubi_create_vol(char *volume, unsigned long size, int dynamic)
 {
 	struct ubi_mkvol_req req;
 	int err;
@@ -191,7 +191,7 @@ static int ubi_create_vol(char *volume, int size, int dynamic)
 		printf("verify_mkvol_req failed %d\n", err);
 		return err;
 	}
-	printf("Creating %s volume %s of size %d\n",
+	printf("Creating %s volume %s of size %u\n",
 		dynamic ? "dynamic" : "static", volume, size);
 	/* Call real ubi create volume */
 	return ubi_create_volume(ubi, &req);
@@ -432,6 +432,8 @@ static int ubi_dev_scan(struct mtd_info *info, char *ubidev,
 
 int ubi_part(char *part_name, const char *vid_header_offset)
 {
+	unsigned long size = 0;
+	ulong addr = 0;
 	int err = 0;
 	char mtd_dev[16];
 	struct mtd_device *dev;
