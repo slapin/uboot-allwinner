@@ -32,6 +32,15 @@
 #define _SUNXI_COMMON_CONFIG_H
 
 /*
+#define DEBUG
+#define CONFIG_MTD_DEBUG
+#define CONFIG_MTD_DEBUG_VERBOSE 99
+*/
+/*
+#define CONFIG_SYS_DCACHE_OFF
+*/
+
+/*
  * High Level Configuration Options
  */
 #define CONFIG_ALLWINNER	/* It's a Allwinner chip */
@@ -71,13 +80,71 @@
 /* A10-EVB has 1 banks of DRAM, we use only one in U-Boot */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1			CONFIG_SYS_SDRAM_BASE
-#if 0
-/* Nand config */
-#define CONFIG_NAND
+
+/* NAND support */
 #define CONFIG_NAND_SUNXI
-#define CONFIG_CMD_NAND                         /* NAND support */
+#define CONFIG_CMD_NAND
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
-#define CONFIG_SYS_NAND_BASE            0x00
+#define CONFIG_SYS_NAND_BASE            0
+#define CONFIG_SUNXI_DMA
+
+#define CONFIG_RBTREE
+#define CONFIG_LZO
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_CMD_UBI
+#define CONFIG_CMD_UBIFS
+#define CONFIG_GENERIC_MMC
+
+#define CONFIG_MMC
+#define CONFIG_CMD_MMC
+#define CONFIG_MMC_SUNXI
+#define CONFIG_MMC_SUNXI_SLOT		0
+#define CONFIG_MMC_SUNXI_USE_DMA
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_FAT		/* with this we can access fat bootfs */
+#define CONFIG_FAT_WRITE	/* enable write access */
+#define CONFIG_CMD_EXT2		/* with this we can access ext2 bootfs */
+#define CONFIG_CMD_EXT4		/* with this we can access ext4 bootfs */
+#define CONFIG_CMD_ZFS		/* with this we can access ZFS bootfs */
+
+#ifndef CONFIG_NANDBOOT
+#define CONFIG_MMCBOOT
+#endif
+/* Nand config */
+#ifdef CONFIG_NANDBOOT
+
+#define CONFIG_ENV_IS_IN_NAND
+#define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_ECC
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_DMA_SUPPORT
+#define CONFIG_SYS_NAND_U_BOOT_OFFS     0x100000
+
+#define CONFIG_CMD_SPL_NAND_OFS         0x800000
+#define CONFIG_CMD_SPL_WRITE_SIZE       0x400
+#define CONFIG_SYS_SPL_ARGS_ADDR        0x44000000
+#define CONFIG_SYS_NAND_SPL_KERNEL_OFFS 0x1100000
+#define CONFIG_SUNXI_SCRIPT_OFS         0xe00000
+#define CONFIG_SUNXI_SPLASH_OFS         0xb00000
+
+#define CONFIG_SYS_NAND_PAGE_SIZE sunxi_nand_spl_page_size
+#define CONFIG_SYS_NAND_BLOCK_SIZE sunxi_nand_spl_block_size
+
+/* mmc config */
+#elif CONFIG_MMCBOOT
+
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT
+#define CONFIG_SPL_MMC_SUPPORT
+#define CONFIG_SPL_LIBDISK_SUPPORT
+
+#else
+
+#define CONFIG_ENV_IS_NOWHERE
+
 #endif
 
 #define CONFIG_CMD_MEMORY
@@ -88,21 +155,11 @@
 #define CONFIG_INITRD_TAG
 #define CONFIG_CMDLINE_EDITING
 
-/* mmc config */
-#define CONFIG_MMC
-#define CONFIG_GENERIC_MMC
-#define CONFIG_CMD_MMC
-#define CONFIG_MMC_SUNXI
-#define CONFIG_MMC_SUNXI_SLOT		0
-#define CONFIG_MMC_SUNXI_USE_DMA
-#define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT
-
 /*
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
  */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (16 << 20))
 
 /* Flat Device Tree (FDT/DT) support */
 #define CONFIG_OF_LIBFDT
@@ -132,6 +189,8 @@
 
 #define CONFIG_SYS_HZ			1000
 
+#define CONFIG_RAND_FUNCTION
+
 /* valid baudrates */
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
@@ -146,99 +205,125 @@
 #define CONFIG_SYS_MONITOR_LEN		(512 << 10)	/* 512 KB */
 #define CONFIG_IDENT_STRING		" Allwinner Technology"
 
-#define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512)KB */
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KB */
-
-#define CONFIG_BOOTCOMMAND \
-	"if run loadbootenv; then " \
-		"echo Loaded environment from ${bootenv};" \
-		"env import -t ${scriptaddr} ${filesize};" \
-	"fi;" \
-	"if test -n ${uenvcmd}; then " \
-		"echo Running uenvcmd ...;" \
-		"run uenvcmd;" \
-	"fi;" \
-	"if run loadbootscr; then "\
-		"echo Jumping to ${bootscr};" \
-		"source ${scriptaddr};" \
-	"fi;" \
-	"run boot_mmc;" \
-	""
 
 #ifdef CONFIG_CMD_WATCHDOG
 #define	RESET_WATCHDOG "watchdog 0"
 #else
 #define RESET_WATCHDOG "true"
 #endif
+#define SHARE_BOOT_ENV													\
+	"ethaddr=44:37:e6:28:3b:80\0"										\
+	"serverip=192.168.0.10\0"											\
+	"ipaddr=192.168.0.114\0"											\
+																		\
+	"mtdids=nand0=mtd-nand-sunxi.0\0"									\
+	"mtdparts=mtdparts=mtd-nand-sunxi.0:1M(spl),4M(uboot),3M(env),3M(fdt),3M(splash),3M(script),8M(kernel),64M(initfs),-(rootfs)\0" \
+																		\
+	"loadaddr=0x44000000\0"												\
+	"fl_spl=nand erase.part spl && nand write ${loadaddr} spl ${filesize}\0" \
+	"fl_uboot=nand erase.part uboot && nand write ${loadaddr} uboot ${filesize}\0" \
+	"fl_env=nand erase.part env && nand write ${loadaddr} env ${filesize}\0" \
+	"fl_fdt=nand erase.part fdt && nand write ${loadaddr} fdt ${filesize}\0" \
+	"fl_splash=nand erase.part splash && nand write ${loadaddr} splash ${filesize}\0" \
+	"fl_script=nand erase.part script && nand write ${loadaddr} script ${filesize}\0" \
+	"fl_kernel=nand erase.part kernel && nand write ${loadaddr} kernel ${filesize}\0" \
+	"fl_initfs=nand erase.part initfs && nand write ${loadaddr} initfs ${filesize}\0" \
+	"fl_rootfs=nand erase.part rootfs && "								\
+	"  ubi part rootfs && "												\
+	"  ubi create rootfs 0x8000000 && "									\
+	"  ubi write ${loadaddr} rootfs ${filesize}\0"						\
+																		\
+	"tf_spl=tftp ${loadaddr} spl.bin && run fl_spl\0"					\
+	"tf_uboot=tftp ${loadaddr} u-boot.bin && run fl_uboot\0"			\
+	"tf_env=tftp ${loadaddr} em6000.env && run fl_env\0"				\
+	"tf_fdt=tftp ${loadaddr} em6000.dtb && run fl_fdt\0"				\
+	"tf_splash=tftp ${loadaddr} usplash.bin && run fl_splash\0"			\
+	"tf_script=tftp ${loadaddr} uscript.bin && run fl_script\0"			\
+	"tf_kernel=tftp ${loadaddr} uImage && run fl_kernel\0"				\
+	"tf_initfs=tftp ${loadaddr} initfs.img && run fl_initfs\0"			\
+	"tf_rootfs=tftp ${loadaddr} rootfs.img && run fl_rootfs\0"			\
 
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"console=ttyS0,115200\0" \
-	"root=auto\0" \
-	"panicarg=panic=10\0" \
-	"extraargs=\0" \
-	"loglevel=8\0" \
-	"scriptaddr=0x44000000\0" \
-	"setargs=" \
-		"if test \"$root\" = \"auto\"; then"\
-			" setenv root;"\
-			" if test \"$bootpath\" = \"boot/\"; then"\
-				" root=\"/dev/mmcblk0p1 rootwait\";"\
-			" else" \
-				" root=\"/dev/mmcblk0p2 rootwait\";"\
-			" fi;"\
-		" fi;"\
-		" setenv bootargs console=${console} root=${root}" \
-			" loglevel=${loglevel} ${panicarg} ${extraargs}\0" \
-	"kernel=uImage\0" \
-	"bootenv=uEnv.txt\0" \
-	"bootscr=boot.scr\0" \
-	"loadbootscr=" \
-		"fatload mmc 0 $scriptaddr ${bootscr}" \
-		" || " \
-		"ext2load mmc 0 $scriptaddr boot/${bootscr}" \
-		" ||" \
-		"ext2load mmc 0 $scriptaddr ${bootscr}" \
-		"\0" \
-	"loadbootenv=" \
-		"fatload mmc 0 $scriptaddr ${bootenv}" \
-		" || " \
-		"ext2load mmc 0 $scriptaddr boot/${bootenv}" \
-		" || " \
-		"ext2load mmc 0 $scriptaddr ${bootenv}" \
-		"\0" \
-	"loadkernel=" \
-		"if "\
-			"bootpath=" \
-			" && " \
-			"fatload mmc 0 0x43000000 script.bin" \
-			" && " \
-			"fatload mmc 0 0x48000000 ${kernel}" \
-		";then true; elif " \
-			"bootpath=boot/" \
-			" && " \
-			"ext2load mmc 0 0x43000000 ${bootpath}script.bin" \
-			" && " \
-			"ext2load mmc 0 0x48000000 ${bootpath}${kernel}" \
-		";then true; elif " \
-			"bootpath=" \
-			" && " \
-			"ext2load mmc 0 0x43000000 ${bootpath}script.bin" \
-			" && " \
-			"ext2load mmc 0 0x48000000 ${bootpath}${kernel}" \
-		";then true; else "\
-			"false" \
-		";fi" \
-		"\0" \
-	"boot_mmc=" \
-		"run loadkernel" \
-		" && " \
-		"run setargs" \
-		" && " \
-		RESET_WATCHDOG \
-		" && " \
-		"bootm 0x48000000" \
-		"\0" \
-	""
+#ifdef CONFIG_MMCBOOT
+#define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512)KB */
+
+#define CONFIG_BOOTCOMMAND						\
+	"if run loadbootenv; then "					\
+	"echo Loaded environment from ${bootenv};"	\
+	"env import -t ${scriptaddr} ${filesize};"	\
+	"fi;"										\
+	"if test -n ${uenvcmd}; then "				\
+	"echo Running uenvcmd ...;"					\
+	"run uenvcmd;"								\
+	"fi;"										\
+	"if run loadbootscr; then "					\
+	"echo Jumping to ${bootscr};"				\
+	"source ${scriptaddr};"						\
+	"fi;"										\
+	"run setargs boot_mmc;"						\
+
+#define CONFIG_EXTRA_ENV_SETTINGS										\
+	"kerneladdr=0x47000000\0"											\
+	"console=ttyS0,115200\0"											\
+	"root=/dev/mmcblk0p2 rootwait\0"									\
+	"panicarg=panic=10\0"												\
+	"extraargs=\0"														\
+	"loglevel=8\0"														\
+	"scriptaddr=0x44000000\0"											\
+	"setargs=setenv bootargs console=${console} root=${root}"			\
+	" mtdparts=mtd-nand-sunxi.0:1M,4M,3M,3M,3M,3M,8M,64M,-"				\
+	" loglevel=${loglevel} ${panicarg} ${extraargs}\0"					\
+	"kernel=uImage\0"													\
+	"bootenv=uEnv.txt\0"												\
+	"bootscr=boot.scr\0"												\
+	"loadbootscr=fatload mmc 0 $scriptaddr ${bootscr} ||"				\
+	" ext2load mmc 0 $scriptaddr ${bootscr} ||"							\
+	" ext2load mmc 0 $scriptaddr boot/${bootscr}\0"						\
+	"loadbootenv=fatload mmc 0 $scriptaddr ${bootenv} ||"				\
+	" ext2load mmc 0 $scriptaddr ${bootenv} ||"							\
+	" ext2load mmc 0 $scriptaddr boot/${bootenv}\0"						\
+	"boot_mmc=fatload mmc 0 0x43000000 script.bin &&"					\
+	" fatload mmc 0 ${kerneladdr} ${kernel} &&"							\
+	" watchdog 0 && bootm ${kerneladdr}\0"								\
+	"cleanenv=mmc erase 0x440 0x100\0"									\
+																		\
+	"mf_spl=fatload mmc 0 ${loadaddr} spl.bin && run fl_spl\0"			\
+	"mf_uboot=fatload mmc 0 ${loadaddr} u-boot.bin && run fl_uboot\0"	\
+	"mf_env=fatload mmc 0 ${loadaddr} em6000.env && run fl_env\0"		\
+	"mf_fdt=fatload mmc 0 ${loadaddr} em6000.dtb && run fl_fdt\0"		\
+	"mf_splash=fatload mmc 0 ${loadaddr} usplash.bin && run fl_splash\0" \
+	"mf_script=fatload mmc 0 ${loadaddr} uscript.bin && run fl_script\0" \
+	"mf_kernel=fatload mmc 0 ${loadaddr} uImage && run fl_kernel\0"		\
+	"mf_initfs=fatload mmc 0 ${loadaddr} initfs.img && run fl_initfs\0"	\
+	"mf_rootfs=fatload mmc 0 ${loadaddr} rootfs.img && run fl_rootfs\0"	\
+	SHARE_BOOT_ENV
+#endif
+
+#ifdef CONFIG_NANDBOOT
+
+#define CONFIG_ENV_OFFSET	0x500000
+#define CONFIG_ENV_RANGE        0x300000
+
+#define CONFIG_EXTRA_ENV_SETTINGS									\
+	"kernel_loadaddr=0x47ffffc0\0"									\
+	"script_loadaddr=0x42ffffc0\0"									\
+	"splash_loadaddr=0x430fffc0\0"									\
+	"console=ttyS0,115200n8\0"										\
+	"nandargs=setenv bootargs console=${console} init=/linuxrc "	\
+	"mtdparts=mtd-nand-sunxi.0:14M@0xb00000,64M,- ubi.mtd=2 "		\
+	"root=ubi0:rootfs rootwait rootfstype=ubifs "					\
+	"root2=10:/dev/blockrom1,squashfs,/init "						\
+	"quiet\0"														\
+	"nandboot=run nandargs; "										\
+	"nand read ${script_loadaddr} script 0x10000; "					\
+	"nand read ${splash_loadaddr} splash 0x10000; "					\
+	"nand read ${kernel_loadaddr} kernel 0x500000; "				\
+	"bootm ${kernel_loadaddr}\0"									\
+	"bootcmd=run nandboot\0"										\
+	"bootdelay=5\0"													\
+	"cleanenv=nand erase.part env\0"								\
+	SHARE_BOOT_ENV
+#endif /* CONFIG_NAND */
 
 #define CONFIG_BOOTDELAY	3
 #define CONFIG_SYS_BOOT_GET_CMDLINE
@@ -246,25 +331,16 @@
 
 #include <config_cmd_default.h>
 
-#define CONFIG_DOS_PARTITION
-#define CONFIG_CMD_FAT		/* with this we can access fat bootfs */
-#define CONFIG_FAT_WRITE	/* enable write access */
-#define CONFIG_CMD_EXT2		/* with this we can access ext2 bootfs */
-#define CONFIG_CMD_EXT4		/* with this we can access ext4 bootfs */
-#define CONFIG_CMD_ZFS		/* with this we can access ZFS bootfs */
-
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_BSS_START_ADDR	0x50000000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
 
-#define CONFIG_SPL_TEXT_BASE		0x20		/* sram start+header */
-#define CONFIG_SPL_MAX_SIZE		0x6000		/* 24 KB */
+#define CONFIG_SPL_TEXT_BASE		0x2d0		/* sram start+header */
+#define CONFIG_SPL_MAX_SIZE		    0x8000		/* 32 KB */
 
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
-#define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
-#define CONFIG_SPL_MMC_SUPPORT
 #define CONFIG_SPL_DISPLAY_PRINT
 
 /* end of 24KB in sram */
@@ -274,8 +350,6 @@
 
 /* 32KB offset */
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	64
-/* SPL starts at offset 8KiB im MMC and has the size of 24KiB */
-#define CONFIG_SPL_PAD_TO		24576		/* decimal for 'dd' */
 
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_NET
