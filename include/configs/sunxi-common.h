@@ -113,7 +113,7 @@
 #define CONFIG_MMCBOOT
 #endif
 /* Nand config */
-#ifdef CONFIG_NANDBOOT
+#if defined(CONFIG_NANDBOOT)
 
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_SPL_NAND_SUPPORT
@@ -134,7 +134,7 @@
 #define CONFIG_SYS_NAND_BLOCK_SIZE sunxi_nand_spl_block_size
 
 /* mmc config */
-#elif CONFIG_MMCBOOT
+#elif defined(CONFIG_MMCBOOT)
 
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT
